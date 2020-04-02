@@ -4,7 +4,12 @@
 *.stat
 *.local
 *.map
+*.identcache
 
-/__history/
-/Win32/
-/Win64/
+Win32/Debug/
+Win32/Release/
+Win64/Debug/
+Win64/Release/
+
+__history/
+__recovery/
