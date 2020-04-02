@@ -10,6 +10,9 @@ type
   TMonthNum   = 1..12;
   TWeekdayNum = 1..7;
 
+  ///<summary>
+  ///  Represent day of the week, where first day is Sunday (1) to Saturday (7)
+  ///</summary>
   TWeekday = record
   private
     FDay: TWeekdayNum;
@@ -18,11 +21,33 @@ type
     function  GetDay: TWeekdayNum; inline;
     procedure SetDay(const Value: TWeekdayNum);  inline;
   public
+    ///<summary>
+    ///  Name of the day as in LongDayNames of system global FormatSettings
+    ///</summary>
     function  ToString: string; overload; inline;
+    ///<summary>
+    ///  Name of the day as in LongDayNames of FormatSettings parameter
+    ///</summary>
     function  ToString(const FormatSettings: TFormatSettings): string; overload; inline;
+    ///<summary>
+    ///  Try parse Value using system global FormatSettings properties LongDayNames and ShortDayNames.
+    ///  Case insensitive
+    ///</summary>
     procedure Parse(const Value: string); overload; inline;
+    ///<summary>
+    ///  Try parse Value using FormatSettings properties LongDayNames and ShortDayNames.
+    ///  Case insensitive
+    ///</summary>
     procedure Parse(const Value: string; const FormatSettings: TFormatSettings); overload; inline;
+    function  TryParse(const Value: string): Boolean; overload; inline;
+    function  TryParse(const Value: string; const FormatSettings: TFormatSettings): Boolean; overload; inline;
+    ///<summary>
+    ///  Get and Set number of day in week based on week started from FirstDayOfWeek parameter
+    ///</summary>
     property  DayOfWeek[const FirstDayOfWeek: TWeekday]: TWeekdayNum read GetDayOfWeek write SetDayOfWeek;
+    ///<summary>
+    ///  Get and Set number of day in week based on week started from FirstDayOfWeek global variable
+    ///</summary>
     property  Day: TWeekdayNum read GetDay write SetDay;
   public
     class operator Add(const a: TWeekday; b: Word): TWeekday; inline;
@@ -40,6 +65,9 @@ type
     class operator LessThanOrEqual(const a, b: TWeekday) : Boolean; inline;
   end;
 
+  ///<summary>
+  ///  Type to enumerate days in week, based on FirstDayOfWeek
+  ///</summary>
   TWeek = record
   private type
     TEnumerator = class
@@ -61,7 +89,13 @@ type
     property  DayOfWeek[const Index: TWeekdayNum]: TWeekday read Get; default;
   end;
 
+  ///<summary>
+  ///  Return week enumeration based on FirstDayOfWeek parameter
+  ///</summary>
   function  WeekDays(const FirstDayOfWeek: TWeekday): TWeek; overload; inline;
+  ///<summary>
+  ///  Return week enumeration based on FirstDayOfWeek global variable
+  ///</summary>
   function  WeekDays: TWeek; overload; inline;
 
 const
@@ -74,6 +108,10 @@ const
   Saturday: TWeekday = (FDay: 7);
 
 type
+  ///<summary>
+  ///  Type reperesenting day of month.
+  ///  Type impilicitly compatible with Word
+  ///</summary>
   TDay = record
   private
     FDay: Word;
@@ -98,11 +136,21 @@ type
     class operator LessThanOrEqual(const a, b: TDay) : Boolean; inline;
   end;
 
+  ///<summary>
+  ///  Type reperesenting year.
+  ///  Type impilicitly compatible with Word
+  ///</summary>
   TYear = record
   private
     FYear: Word;
   public
+    ///<summary>
+    ///  Return year of current system date
+    ///</summary>
     class function Current: TYear; static; inline;
+    ///<summary>
+    ///  Return true if is leap year
+    ///</summary>
     function  IsLeap: Boolean; inline;
   public
     class operator Implicit(const a: Word): TYear; inline;
@@ -126,12 +174,25 @@ type
     class operator LessThanOrEqual(const a, b: TYear) : Boolean; inline;
   end;
 
+  ///<summary>
+  ///  Type reperesenting a month.
+  ///  Type impilicitly compatible with Word
+  ///</summary>
   TMonth = record
   private
     FMonth: Word;
   public
+    ///<summary>
+    ///  Name of the day as in LongMonthNames of system global FormatSettings
+    ///</summary>
     function  ToString: string; overload; inline;
+    ///<summary>
+    ///  Name of the day as in LongMonthNames of FormatSettings parameter
+    ///</summary>
     function  ToString(const FormatSettings: TFormatSettings): string; overload; inline;
+    ///<summary>
+    ///  Returns count of days in month of a Year
+    ///</summary>
     function  Count(const Year: TYear): Word; inline;
   public
     class operator Add(const a: TMonth; b: Word): TMonth; inline;
@@ -235,6 +296,8 @@ type
     function  Format(const Format: string; const FormatSettings: TFormatSettings): string; overload; inline;
     procedure Parse(const Value: string); overload; inline;
     procedure Parse(const Value: string; const FormatSettings: TFormatSettings); overload; inline;
+    function  TryParse(const Value: string): Boolean; overload; inline;
+    function  TryParse(const Value: string; const FormatSettings: TFormatSettings): Boolean; overload; inline;
     procedure Encode(const Year, Month, Day: Word); overload; inline;
     procedure Encode(const Year: TYear; const Month: TMonth; const Day: TDay); overload; inline;
     procedure Decode(var Year, Month, Day: Word); overload;
@@ -301,6 +364,8 @@ type
     function  Format(const Format: string; const FormatSettings: TFormatSettings): string; overload; inline;
     procedure Parse(const Value: string); overload; inline;
     procedure Parse(const Value: string; const FormatSettings: TFormatSettings); overload; inline;
+    function  TryParse(const Value: string): Boolean; overload; inline;
+    function  TryParse(const Value: string; const FormatSettings: TFormatSettings): Boolean; overload; inline;
     procedure Encode(Hour, Min, Sec: Word; MSec: Word = 0); inline;
     procedure Decode(var Hour, Min, Sec, MSec: Word); overload; inline;
     procedure Decode(var Hour, Min, Sec: Word); overload; inline;
@@ -349,6 +414,8 @@ type
     function  Format(const Format: string; const FormatSettings: TFormatSettings): string; overload; inline;
     procedure Parse(const Value: string); overload; inline;
     procedure Parse(const Value: string; const FormatSettings: TFormatSettings); overload; inline;
+    function  TryParse(const Value: string): Boolean; overload; inline;
+    function  TryParse(const Value: string; const FormatSettings: TFormatSettings): Boolean; overload; inline;
     property  Date: TDate read FDate write SetDate;
     property  Time: TTime read FTime write SetTime;
   public
@@ -882,6 +949,24 @@ begin
   FDate := Trunc(StrToDate(Value, FormatSettings)) + DateDelta;
 end;
 
+function TDate.TryParse(const Value: string): Boolean;
+var
+  D: System.TDateTime;
+begin
+  Result := TryStrToDate(Value, D);
+  if Result then
+    Self := D;
+end;
+
+function TDate.TryParse(const Value: string; const FormatSettings: TFormatSettings): Boolean;
+var
+  D: System.TDateTime;
+begin
+  Result := TryStrToDate(Value, D, FormatSettings);
+  if Result then
+    Self := D;
+end;
+
 {$endregion}
 
 {$region 'Time routine'}
@@ -1109,6 +1194,24 @@ begin
   Self := StrToDateTime(Value);
 end;
 
+function TTime.TryParse(const Value: string; const FormatSettings: TFormatSettings): Boolean;
+var
+  D: System.TDateTime;
+begin
+  Result := TryStrToDateTime(Value, D, FormatSettings);
+  if Result then
+    Self := D;
+end;
+
+function TTime.TryParse(const Value: string): Boolean;
+var
+  D: System.TDateTime;
+begin
+  Result := TryStrToDateTime(Value, D);
+  if Result then
+    Self := D;
+end;
+
 {$endregion}
 
 { TWeekday }
@@ -1189,29 +1292,40 @@ begin
 end;
 
 procedure TWeekday.Parse(const Value: string; const FormatSettings: TFormatSettings);
-var
-  I: Integer;
 begin
-  for I := 1 to 7 do 
-    if AnsiSameText(Value, FormatSettings.LongDayNames[I]) then
-    begin
-      FDay := I;
-      Exit;
-    end;
-
-  for I := 1 to 7 do 
-    if AnsiSameText(Value, FormatSettings.ShortDayNames[I]) then
-    begin
-      FDay := I;
-      Exit;
-    end; 
-
-  raise EConvertError.CreateResFmt(@System.SysConst.SInvalidDate, [Value]);   
+  if not TryParse(Value, FormatSettings) then
+    raise EConvertError.CreateResFmt(@System.SysConst.SInvalidDate, [Value]);
 end;
 
 procedure TWeekday.Parse(const Value: string);
 begin
   Parse(Value, FormatSettings);
+end;
+
+function TWeekday.TryParse(const Value: string; const FormatSettings: TFormatSettings): Boolean;
+var
+  I: Integer;
+begin
+  for I := 1 to 7 do
+    if AnsiSameText(Value, FormatSettings.LongDayNames[I]) then
+    begin
+      FDay := I;
+      Exit(True);
+    end;
+
+  for I := 1 to 7 do
+    if AnsiSameText(Value, FormatSettings.ShortDayNames[I]) then
+    begin
+      FDay := I;
+      Exit(True);
+    end;
+
+  Result := False;
+end;
+
+function TWeekday.TryParse(const Value: string): Boolean;
+begin
+  Result := TryParse(Value, FormatSettings)
 end;
 
 function TWeekday.GetDay: TWeekdayNum;
@@ -1737,6 +1851,24 @@ end;
 procedure TDateTime.Parse(const Value: string);
 begin
   Self := StrToDateTime(Value);
+end;
+
+function TDateTime.TryParse(const Value: string; const FormatSettings: TFormatSettings): Boolean;
+var
+  D: System.TDateTime;
+begin
+  Result := TryStrToDateTime(Value, D, FormatSettings);
+  if Result then
+    Self := D;
+end;
+
+function TDateTime.TryParse(const Value: string): Boolean;
+var
+  D: System.TDateTime;
+begin
+  Result := TryStrToDateTime(Value, D);
+  if Result then
+    Self := D;
 end;
 
 procedure TDateTime.SetDate(const Value: TDate);
