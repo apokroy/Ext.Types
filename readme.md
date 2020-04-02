@@ -4,4 +4,4 @@
 Types related to Date & Time, including replacement to TDateTime, TTime and TDate sytem types.
 
 ### Ext.Types.List
-Generic List<T>, wrapping system TArray<T>. Supports modern set of functions like Filter, Join, Map, Reduce etc.
+Generic List\<T>, wrapping system TArray\<T>. Supports modern set of functions like Filter, Join, Map, Reduce etc.
