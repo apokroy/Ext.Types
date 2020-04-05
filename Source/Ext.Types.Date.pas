@@ -183,11 +183,11 @@ type
     FMonth: Word;
   public
     ///<summary>
-    ///  Name of the day as in LongMonthNames of system global FormatSettings
+    ///  Name of the month as in LongMonthNames of system global FormatSettings
     ///</summary>
     function  ToString: string; overload; inline;
     ///<summary>
-    ///  Name of the day as in LongMonthNames of FormatSettings parameter
+    ///  Name of the month as in LongMonthNames of FormatSettings parameter
     ///</summary>
     function  ToString(const FormatSettings: TFormatSettings): string; overload; inline;
     ///<summary>
