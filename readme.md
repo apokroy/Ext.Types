@@ -12,7 +12,7 @@ Iterate thorough days, from first day of month's start week, to last day of mont
 * `TDate.Today - current date`
 * `TDate.Today.StartOfMonth` - first day of month
 * `TDate.Today.StartOfMonth.StartOfWeek` - first weekday of days week
-* `TDate.Today.StartOfMonth.StartOfWeek` - first weekday of days week, where week starts from Monday
+* `TDate.Today.StartOfMonth.StartOfWeek(Monday)` - first weekday of days week, where week starts from Monday
 ```pascal
 for var D: TDate in TDate.Sequence(TDate.Today.StartOfMonth.StartOfWeek(Monday), TDate.Today.EndOfMonth.EndOfWeek(Monday)) do
 begin
