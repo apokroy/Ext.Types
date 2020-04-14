@@ -44,6 +44,10 @@ type
     ///<summary>
     ///  Get and Set number of day in week based on week started from FirstDayOfWeek parameter
     ///</summary>
+    ///<code>
+    ///  Monday.DayOfWeek[Monday] returns 1
+    ///  Monday.DayOfWeek[Sunday] returns 2
+    ///</code>
     property  DayOfWeek[const FirstDayOfWeek: TWeekday]: TWeekdayNum read GetDayOfWeek write SetDayOfWeek;
     ///<summary>
     ///  Get and Set number of day in week based on week started from FirstDayOfWeek global variable
@@ -225,6 +229,9 @@ const
   December : TMonth = (FMonth: 12);
 
 type
+  ///<summary>
+  ///  Type allows increment & decrement month to iterate through years and months
+  ///</summary>
   TMonthOfYear = record
   private
     FYear: TYear;
@@ -298,6 +305,12 @@ type
     procedure Parse(const Value: string; const FormatSettings: TFormatSettings); overload; inline;
     function  TryParse(const Value: string): Boolean; overload; inline;
     function  TryParse(const Value: string; const FormatSettings: TFormatSettings): Boolean; overload; inline;
+    function  StartOfMonth: TDate; inline;
+    function  EndOfMonth: TDate; inline;
+    function  StartOfWeek: TDate; overload; inline;
+    function  StartOfWeek(const FirstDayOfWeek: TWeekday): TDate; overload; inline;
+    function  EndOfWeek: TDate; overload; inline;
+    function  EndOfWeek(const FirstDayOfWeek: TWeekday): TDate; overload; inline;
     procedure Encode(const Year, Month, Day: Word); overload; inline;
     procedure Encode(const Year: TYear; const Month: TMonth; const Day: TDay); overload; inline;
     procedure Decode(var Year, Month, Day: Word); overload;
@@ -316,12 +329,6 @@ type
     class function Today: TDate; static; inline;
     class function Range(const First, Last: TDate): TArray<TDate>; static;
     class function Sequence(const First, Last: TDate): TSequence; static;
-    function  StartOfMonth: TDate; inline;
-    function  EndOfMonth: TDate; inline;
-    function  StartOfWeek: TDate; overload; inline;
-    function  StartOfWeek(const FirstDayOfWeek: TWeekday): TDate; overload; inline;
-    function  EndOfWeek: TDate; overload; inline;
-    function  EndOfWeek(const FirstDayOfWeek: TWeekday): TDate; overload; inline;
   public
     class operator Add(const a: TDate; const b: Integer): TDate; inline;
     class operator Subtract(const a: TDate; const b: Integer): TDate; inline;
@@ -429,6 +436,9 @@ type
     class operator Implicit(const a: TDateTime): System.TDateTime; inline;
     class operator Explicit(const a: TDateTime): string; inline;
     class operator Explicit(const a: string): TDateTime; inline;
+    class operator Explicit(const a: TDateTime): TDate; inline;
+    class operator Explicit(const a: TDate): TDateTime; inline;
+    class operator Explicit(const a: TDateTime): TTime; inline;
     class operator Negative(const a: TDateTime): TDateTime; inline;
     class operator Positive(const a: TDateTime): TDateTime;  inline;
     class operator Equal(const a, b: TDateTime) : Boolean; inline;
@@ -1776,6 +1786,22 @@ end;
 class operator TDateTime.Explicit(const a: string): TDateTime;
 begin
   Result.Parse(a);
+end;
+
+class operator TDateTime.Explicit(const a: TDateTime): TDate;
+begin
+  Result := a.Date;
+end;
+
+class operator TDateTime.Explicit(const a: TDate): TDateTime;
+begin
+  Result.FTime := 0;
+  Result.FDate := a;
+end;
+
+class operator TDateTime.Explicit(const a: TDateTime): TTime;
+begin
+  Result := a.Time;
 end;
 
 class operator TDateTime.Equal(const a, b: TDateTime): Boolean;
