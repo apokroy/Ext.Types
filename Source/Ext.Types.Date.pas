@@ -2,7 +2,7 @@ unit Ext.Types.Date;
 
 interface
 
-uses System.Types, System.SysUtils, System.Variants;
+uses System.Types, {$IFDEF MSWINDOWS}Winapi.Windows, {$ENDIF}System.SysUtils, System.Variants;
 
 {$R+}
 
@@ -10,6 +10,7 @@ type
   TMonthNum   = 1..12;
   TWeekdayNum = 1..7;
 
+  PWeekday = ^TWeekday;
   ///<summary>
   ///  Represent day of the week, where first day is Sunday (1) to Saturday (7)
   ///</summary>
@@ -17,7 +18,7 @@ type
   private
     FDay: TWeekdayNum;
     function  GetDayOfWeek(const FirstDayOfWeek: TWeekday): TWeekdayNum; inline;
-    procedure SetDayOfWeek(const FirstDayOfWeek: TWeekday; const Value: TWeekdayNum);  inline;
+    procedure SetDayOfWeek(const FirstDayOfWeek: TWeekday; const Value: TWeekdayNum); inline;
     function  GetDay: TWeekdayNum; inline;
     procedure SetDay(const Value: TWeekdayNum);  inline;
   public
@@ -69,6 +70,7 @@ type
     class operator LessThanOrEqual(const a, b: TWeekday) : Boolean; inline;
   end;
 
+  PWeek = ^TWeek;
   ///<summary>
   ///  Type to enumerate days in week, based on FirstDayOfWeek
   ///</summary>
@@ -112,6 +114,7 @@ const
   Saturday: TWeekday = (FDay: 7);
 
 type
+  PDay = ^TDay;
   ///<summary>
   ///  Type reperesenting day of month.
   ///  Type impilicitly compatible with Word
@@ -140,6 +143,7 @@ type
     class operator LessThanOrEqual(const a, b: TDay) : Boolean; inline;
   end;
 
+  PYear = ^TYear;
   ///<summary>
   ///  Type reperesenting year.
   ///  Type impilicitly compatible with Word
@@ -178,6 +182,7 @@ type
     class operator LessThanOrEqual(const a, b: TYear) : Boolean; inline;
   end;
 
+  PMonth = ^TMonth;
   ///<summary>
   ///  Type reperesenting a month.
   ///  Type impilicitly compatible with Word
@@ -229,6 +234,7 @@ const
   December : TMonth = (FMonth: 12);
 
 type
+  PMonthOfYear = ^TMonthOfYear;
   ///<summary>
   ///  Type allows increment & decrement month to iterate through years and months
   ///</summary>
@@ -263,6 +269,7 @@ type
   end;
 
 type
+  PDate = ^TDate;
   TDate = record
   private type
     TSequenceEnumerator = class
@@ -351,6 +358,7 @@ type
     class operator LessThanOrEqual(const a, b: TDate) : Boolean; inline;
   end;
 
+  PTime = ^TTime;
   TTime = record
   private
     FTime: Integer;
@@ -408,6 +416,7 @@ type
     class operator LessThanOrEqual(const a, b: TTime) : Boolean; inline;
   end;
 
+  PDateTime = ^TDateTime;
   TDateTime = record
   private
     FDate: TDate;
@@ -584,7 +593,7 @@ var
 
 implementation
 
-uses {$IFDEF MSWINDOWS}Winapi.Windows, {$ENDIF}System.SysConst, System.Math;
+uses System.SysConst, System.Math;
 
 {$region 'Date routine'}
 
@@ -724,9 +733,24 @@ begin
 end;
 
 class function TDate.Today: TDate;
+{$IFDEF MSWINDOWS}
+var
+  SystemTime: TSystemTime;
 begin
-  Result := System.SysUtils.Date;
+  GetLocalTime(SystemTime);
+  Result.Encode(SystemTime.wYear, SystemTime.wMonth, SystemTime.wDay);
 end;
+{$ENDIF MSWINDOWS}
+{$IFDEF POSIX}
+var
+  T: time_t;
+  UT: tm;
+begin
+  __time(T);
+  localtime_r(T, UT);
+  Result.Encode(UT.tm_year + 1900, UT.tm_mon + 1, UT.tm_mday);
+end;
+{$ENDIF POSIX}
 
 function TDate.GetISO: string;
 begin
@@ -994,9 +1018,26 @@ begin
 end;
 
 class function TTime.Now: TTime;
+{$IFDEF MSWINDOWS}
+var
+  SystemTime: TSystemTime;
 begin
-  Result := System.SysUtils.Now;
+  GetLocalTime(SystemTime);
+  Result.Encode(SystemTime.wHour, SystemTime.wMinute, SystemTime.wSecond, SystemTime.wMilliseconds);
 end;
+{$ENDIF MSWINDOWS}
+{$IFDEF POSIX}
+var
+  T: time_t;
+  TV: timeval;
+  UT: tm;
+begin
+  gettimeofday(TV, nil);
+  T := TV.tv_sec;
+  localtime_r(T, UT);
+  Result.Encode(UT.tm_hour, UT.tm_min, UT.tm_sec, TV.tv_usec div 1000);
+end;
+{$ENDIF POSIX}
 
 class operator TTime.Add(const a: TTime; b: Integer): TTime;
 begin
@@ -1355,7 +1396,7 @@ end;
 
 procedure TWeekday.SetDayOfWeek(const FirstDayOfWeek: TWeekday; const Value: TWeekdayNum);
 begin
-  FDay := WeekdaysArray[Word(FirstDayOfWeek), FDay];
+  FDay := WeekdaysArray[Word(FirstDayOfWeek), Value];
 end;
 
 { TWeek.TEnumerator }
@@ -1845,9 +1886,28 @@ begin
 end;
 
 class function TDateTime.Now: TDateTime;
+{$IFDEF MSWINDOWS}
+var
+  SystemTime: TSystemTime;
 begin
-  Result := System.SysUtils.Now;
+  GetLocalTime(SystemTime);
+  Result.FDate.Encode(SystemTime.wYear, SystemTime.wMonth, SystemTime.wDay);
+  Result.FTime.Encode(SystemTime.wHour, SystemTime.wMinute, SystemTime.wSecond, SystemTime.wMilliseconds);
 end;
+{$ENDIF MSWINDOWS}
+{$IFDEF POSIX}
+var
+  T: time_t;
+  TV: timeval;
+  UT: tm;
+begin
+  gettimeofday(TV, nil);
+  T := TV.tv_sec;
+  localtime_r(T, UT);
+  Result.FDate.Encode(UT.tm_year + 1900, UT.tm_mon + 1, UT.tm_mday);
+  Result.FTime.Encode(UT.tm_hour, UT.tm_min, UT.tm_sec, TV.tv_usec div 1000);
+end;
+{$ENDIF POSIX}
 
 function TDateTime.ToString: string;
 begin
