@@ -15,7 +15,9 @@ program Test;
 {$ENDIF}
 
 uses
-  DUnitTestRunner;
+  DUnitTestRunner,
+  TestExt.Types in 'TestExt.Types.pas',
+  Ext.Types.Date in '..\Source\Ext.Types.Date.pas';
 
 {$R *.RES}
 
