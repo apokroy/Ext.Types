@@ -321,8 +321,6 @@ type
     procedure Parse(const Value: string; const FormatSettings: TFormatSettings); overload; inline;
     function  TryParse(const Value: string): Boolean; overload; inline;
     function  TryParse(const Value: string; const FormatSettings: TFormatSettings): Boolean; overload; inline;
-    function  StartOfMonth: TDate; inline;
-    function  EndOfMonth: TDate; inline;
     function  StartOfWeek: TDate; overload; inline;
     function  StartOfWeek(const FirstDayOfWeek: TWeekday): TDate; overload; inline;
     function  EndOfWeek: TDate; overload; inline;
@@ -897,26 +895,6 @@ end;
 function TDate.EndOfWeek(const FirstDayOfWeek: TWeekday): TDate;
 begin
   Result.FDate := FDate + (7 - Weekday.DayOfWeek[FirstDayOfWeek]);
-end;
-
-function TDate.StartOfMonth: TDate;
-var
-  Y: TYear;
-  M: TMonth;
-  D: TDay;
-begin
-  Decode(Y, M, D);
-  Result := M.First(Y)
-end;
-
-function TDate.EndOfMonth: TDate;
-var
-  Y: TYear;
-  M: TMonth;
-  D: TDay;
-begin
-  Decode(Y, M, D);
-  Result := M.Last(Y)
 end;
 
 function TDate.ToString: string;
