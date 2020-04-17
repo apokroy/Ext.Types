@@ -3,9 +3,6 @@
         <ProjectGuid>{D4EF8BB2-FBC0-4188-9A40-D9601CD3AE7C}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
-        <Projects Include="Source\Packages\Ext.Types.dproj">
-            <Dependencies/>
-        </Projects>
         <Projects Include="Demo\Ext.Demo.dproj">
             <Dependencies/>
         </Projects>
@@ -20,15 +17,6 @@
             <Default.Personality/>
         </BorlandProject>
     </ProjectExtensions>
-    <Target Name="Ext_Types">
-        <MSBuild Projects="Source\Packages\Ext.Types.dproj"/>
-    </Target>
-    <Target Name="Ext_Types:Clean">
-        <MSBuild Projects="Source\Packages\Ext.Types.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="Ext_Types:Make">
-        <MSBuild Projects="Source\Packages\Ext.Types.dproj" Targets="Make"/>
-    </Target>
     <Target Name="Ext_Demo">
         <MSBuild Projects="Demo\Ext.Demo.dproj"/>
     </Target>
@@ -48,13 +36,13 @@
         <MSBuild Projects="Test\Test.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="Ext_Types;Ext_Demo;Test"/>
+        <CallTarget Targets="Ext_Demo;Test"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="Ext_Types:Clean;Ext_Demo:Clean;Test:Clean"/>
+        <CallTarget Targets="Ext_Demo:Clean;Test:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="Ext_Types:Make;Ext_Demo:Make;Test:Make"/>
+        <CallTarget Targets="Ext_Demo:Make;Test:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
