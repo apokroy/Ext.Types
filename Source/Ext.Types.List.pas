@@ -53,6 +53,7 @@ type
     property  Element[const Index: Integer]: T read GetElement write SetElement; default;
     property  Items: TArray<T> read FItems;
   public
+//    class operator  Explicit(const A: List<T>): List<T>; inline;
     class operator  Implicit(const A: TArray<T>): List<T>; inline;
     class operator  Implicit(const A: array of T): List<T>;
     class operator  Implicit(const A: List<T>): TArray<T>; inline;
@@ -116,6 +117,11 @@ function List<T>.GetEnumerator: TEnumerator;
 begin
   Result := TEnumerator.Create(@Self);
 end;
+
+{class operator List<T>.Explicit(const A: List<T>): List<T>;
+begin
+  Result.FItems := Copy(A.FItems, 0, Length(A.FItems));
+end;}
 
 class operator List<T>.Implicit(const A: List<T>): TArray<T>;
 begin
