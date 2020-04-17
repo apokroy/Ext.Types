@@ -2,15 +2,21 @@ unit Ext.Types.Date;
 
 interface
 
-uses System.Types, {$IFDEF MSWINDOWS}Winapi.Windows, {$ENDIF}System.SysUtils, System.Variants;
-
-{$R+}
+uses
+  System.Types, {$IFDEF MSWINDOWS}Winapi.Windows, {$ENDIF}System.SysUtils;
 
 type
   TMonthNum   = 1..12;
   TWeekdayNum = 1..7;
 
+  TDateParts = record
+    Y: Word;
+    M: Word;
+    D: Word;
+  end;
+
   PWeekday = ^TWeekday;
+
   ///<summary>
   ///  Represent day of the week, where first day is Sunday (1) to Saturday (7)
   ///</summary>
@@ -71,6 +77,7 @@ type
   end;
 
   PWeek = ^TWeek;
+
   ///<summary>
   ///  Type to enumerate days in week, based on FirstDayOfWeek
   ///</summary>
@@ -133,8 +140,6 @@ type
     class operator IntDivide(const a: TDay; const b: Word): TDay; inline;
     class operator Inc(const a: TDay): TDay; inline;
     class operator Dec(const a: TDay): TDay; inline;
-    class operator Negative(const a: TDay): TDay; inline;
-    class operator Positive(const a: TDay): TDay; inline;
     class operator Equal(const a, b: TDay) : Boolean; inline;
     class operator NotEqual(const a, b: TDay) : Boolean; inline;
     class operator GreaterThan(const a, b: TDay) : Boolean; inline;
@@ -144,6 +149,7 @@ type
   end;
 
   PYear = ^TYear;
+
   ///<summary>
   ///  Type reperesenting year.
   ///  Type impilicitly compatible with Word
@@ -172,8 +178,6 @@ type
     class operator IntDivide(const a: TYear; const b: Word): TYear; inline;
     class operator Inc(const a: TYear): TYear; inline;
     class operator Dec(const a: TYear): TYear; inline;
-    class operator Negative(const a: TYear): TYear; inline;
-    class operator Positive(const a: TYear): TYear; inline;
     class operator Equal(const a, b: TYear) : Boolean; inline;
     class operator NotEqual(const a, b: TYear) : Boolean; inline;
     class operator GreaterThan(const a, b: TYear) : Boolean; inline;
@@ -183,6 +187,7 @@ type
   end;
 
   PMonth = ^TMonth;
+
   ///<summary>
   ///  Type reperesenting a month.
   ///  Type impilicitly compatible with Word
@@ -235,6 +240,7 @@ const
 
 type
   PMonthOfYear = ^TMonthOfYear;
+
   ///<summary>
   ///  Type allows increment & decrement month to iterate through years and months
   ///</summary>
@@ -260,6 +266,8 @@ type
     class operator Add(const a: TMonthOfYear; b: Word): TMonthOfYear; inline;
     class operator Subtract(const a, b: TMonthOfYear): Integer; inline;
     class operator Subtract(const a: TMonthOfYear; const b: Word): TMonthOfYear; inline;
+    class operator Inc(const a: TMonthOfYear): TMonthOfYear; inline;
+    class operator Dec(const a: TMonthOfYear): TMonthOfYear; inline;
     class operator Equal(const a, b: TMonthOfYear) : Boolean; inline;
     class operator NotEqual(const a, b: TMonthOfYear) : Boolean; inline;
     class operator GreaterThan(const a, b: TMonthOfYear) : Boolean; inline;
@@ -270,6 +278,7 @@ type
 
 type
   PDate = ^TDate;
+
   TDate = record
   private type
     TSequenceEnumerator = class
@@ -281,7 +290,7 @@ type
       function  MoveNext: Boolean; inline;
       property  Current: TDate read GetCurrent;
     end;
-
+  public type
     TSequence = record
     private
       FFirst, FLast: Integer;
@@ -319,8 +328,12 @@ type
     function  EndOfWeek: TDate; overload; inline;
     function  EndOfWeek(const FirstDayOfWeek: TWeekday): TDate; overload; inline;
     procedure Encode(const Year, Month, Day: Word); overload; inline;
+    procedure Encode(const Year, Month: Word); overload; inline;
+    procedure Encode(const Year: Word); overload; inline;
     procedure Encode(const Year: TYear; const Month: TMonth; const Day: TDay); overload; inline;
-    procedure Decode(var Year, Month, Day: Word); overload;
+    procedure Decode(var Year, Month, Day: Word); overload; inline;
+    procedure Decode(var Year, Month: Word); overload; inline;
+    procedure Decode(var Year: Word); overload; inline;
     procedure Decode(var Year: TYear; var Month: TMonth; var Day: TDay); overload; inline;
     property  Day: TDay read GetDay write SetDay;
     property  Month: TMonth read GetMonth write SetMonth;
@@ -333,7 +346,7 @@ type
     constructor Create(const Date: System.TDateTime); overload;
     constructor Create(const Year: TYear; const Month: TMonth; const Day: TDay); overload;
     constructor Create(const Year, Month, Day: Word); overload;
-    class function Today: TDate; static; inline;
+    class function Today: TDate; overload; static; inline;
     class function Range(const First, Last: TDate): TArray<TDate>; static;
     class function Sequence(const First, Last: TDate): TSequence; static;
   public
@@ -348,8 +361,6 @@ type
     class operator Explicit(const a: string): TDate; inline;
     class operator Inc(const a: TDate): TDate; inline;
     class operator Dec(const a: TDate): TDate; inline;
-    class operator Negative(const a: TDate): TDate; inline;
-    class operator Positive(const a: TDate): TDate;  inline;
     class operator Equal(const a, b: TDate) : Boolean; inline;
     class operator NotEqual(const a, b: TDate) : Boolean; inline;
     class operator GreaterThan(const a, b: TDate) : Boolean; inline;
@@ -406,8 +417,6 @@ type
     class operator Explicit(const a: string): TTime; inline;
     class operator Inc(const a: TTime): TTime; inline;
     class operator Dec(const a: TTime): TTime; inline;
-    class operator Negative(const a: TTime): TTime; inline;
-    class operator Positive(const a: TTime): TTime;  inline;
     class operator Equal(const a, b: TTime) : Boolean; inline;
     class operator NotEqual(const a, b: TTime) : Boolean; inline;
     class operator GreaterThan(const a, b: TTime) : Boolean; inline;
@@ -448,8 +457,6 @@ type
     class operator Explicit(const a: TDateTime): TDate; inline;
     class operator Explicit(const a: TDate): TDateTime; inline;
     class operator Explicit(const a: TDateTime): TTime; inline;
-    class operator Negative(const a: TDateTime): TDateTime; inline;
-    class operator Positive(const a: TDateTime): TDateTime;  inline;
     class operator Equal(const a, b: TDateTime) : Boolean; inline;
     class operator NotEqual(const a, b: TDateTime) : Boolean; inline;
     class operator GreaterThan(const a, b: TDateTime) : Boolean; inline;
@@ -480,104 +487,17 @@ type
   public
     function  First: TDate; inline;
     function  Last: TDate; inline;
-    function  Sequence: TDate.TSequence;
+    function  Sequence: TDate.TSequence; inline;
   end;
 
-{$region 'fast calculation consts'}
-const
-  DaysOfWeekArray: array[TWeekdayNum] of array[TWeekdayNum] of TWeekdayNum = (
-    (1, 2, 3, 4, 5, 6, 7), //Sunday
-    (7, 1, 2, 3, 4, 5, 6),
-    (6, 7, 1, 2, 3, 4, 5),
-    (5, 6, 7, 1, 2, 3, 4),
-    (4, 5, 6, 7, 1, 2, 3),
-    (3, 4, 5, 6, 7, 1, 2),
-    (2, 3, 4, 5, 6, 7, 1)
-  );
-
-  WeekdaysArray: array[TWeekdayNum] of array[TWeekdayNum] of TWeekdayNum = (
-    (1, 2, 3, 4, 5, 6, 7), //Sunday
-    (2, 3, 4, 5, 6, 7, 1),
-    (3, 4, 5, 6, 7, 1, 2),
-    (4, 5, 6, 7, 1, 2, 3),
-    (5, 6, 7, 1, 2, 3, 4),
-    (6, 7, 1, 2, 3, 4, 5),
-    (7, 1, 2, 3, 4, 5, 6)
-  );
-
-  MonthOfDay: array[Boolean, 1..366] of Word = (
-    (
-      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-      2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-      4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-      5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
-      6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-      7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-      9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
-      10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
-      11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11,
-      12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
-      0
-    ),
-    (
-      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-      2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-      3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-      4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
-      5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,
-      6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,
-      7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7,
-      8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
-      9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
-      10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10,
-      11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11,
-      12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12
-    )
-  );
-
-  MonthDayOfDay: array[Boolean, 1..366] of Word = (
-    (
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28,
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-      0
-    ),
-    (
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31,
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
-      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31
-    )
-  );
-
-  MonthOffset: array[Boolean, 1..12] of Word = (
-    (0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334),
-    (0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335)
-  );
-
-{$endregion}
+  /// Predefined constants for fast calculations
+  {$include Ext.Types.Date.FastCalc.inc}
+  {$include Ext.Types.Date.Leap.inc}
+  {$include Ext.Types.Date.DateYMD.inc} //predefined for dates from 1970 to 2100 years
+  {$include Ext.Types.Date.YMDDate.inc} //predefined for dates from 1970 to 2100 years
 
 const
-  ISO8601FormatSettings: TFormatSettings = (
+  ISO8601DateFormatSettings: TFormatSettings = (
     DateSeparator: '-';
     TimeSeparator: ':';
     ShortDateFormat: 'YYYY-MM-DD';
@@ -593,7 +513,14 @@ var
 
 implementation
 
-uses System.SysConst, System.Math;
+uses System.SysConst;
+
+// a little slower, but no longer need a Math dependency
+procedure DivMod(Dividend: Cardinal; Divisor: Word; var Result, Remainder: Word); inline;
+begin
+  Result := Dividend div Divisor;
+  Remainder := Dividend mod Divisor;
+end;
 
 {$region 'Date routine'}
 
@@ -674,16 +601,6 @@ begin
   Result.FDate := a.FDate - 1;
 end;
 
-class operator TDate.Negative(const a: TDate): TDate;
-begin
-  Result.FDate := -a.FDate;
-end;
-
-class operator TDate.Positive(const a: TDate): TDate;
-begin
-  Result.FDate := +a.FDate;
-end;
-
 class operator TDate.Equal(const a, b: TDate): Boolean;
 begin
   Result := a.FDate = b.FDate;
@@ -754,12 +671,12 @@ end;
 
 function TDate.GetISO: string;
 begin
-  Result := ToString(ISO8601FormatSettings);
+  Result := ToString(ISO8601DateFormatSettings);
 end;
 
 procedure TDate.SetISO(const Value: string);
 begin
-  Parse(Value, ISO8601FormatSettings);
+  Parse(Value, ISO8601DateFormatSettings);
 end;
 
 procedure TDate.Decode(var Year, Month, Day: Word);
@@ -772,6 +689,14 @@ var
   I: Word;
   T: Integer;
 begin
+  if (FDate >= Low(DateYMD)) and (FDate <= High(DateYMD)) then
+  begin
+    Year := DateYMD[FDate].Y;
+    Month := DateYMD[FDate].M;
+    Day := DateYMD[FDate].D;
+    Exit;
+  end;
+
   T := FDate - 1;
 
   Year := (T div D400) * 400 + 1;
@@ -793,8 +718,22 @@ begin
     Inc(Day, D1);
   end;
   Inc(Year, I);
-  Month := MonthOfDay[TYear(Year).IsLeap, Day + 1];
-  Day := MonthDayOfDay[TYear(Year).IsLeap, Day + 1];
+  Month := MonthOfDay[YearIsLeap[Year], Day + 1];
+  Day := MonthDayOfDay[YearIsLeap[Year], Day + 1];
+end;
+
+procedure TDate.Decode(var Year, Month: Word);
+var
+  D: Word;
+begin
+  Decode(Year, Month, D);
+end;
+
+procedure TDate.Decode(var Year: Word);
+var
+  M, D: Word;
+begin
+  Decode(Year, M, D);
 end;
 
 procedure TDate.Decode(var Year: TYear; var Month: TMonth; var Day: TDay);
@@ -806,8 +745,40 @@ procedure TDate.Encode(const Year, Month, Day: Word);
 var
   I: Integer;
 begin
+  if (Year >= Low(YMDDate)) and (Year <= High(YMDDate)) then
+  begin
+    FDate := YMDDate[Year, Month, Day];
+    Exit;
+  end;
   I := Year - 1;
-  FDate := I * 365 + I div 4 - I div 100 + I div 400 + MonthOffset[TYear(Year).IsLeap, Month] + Day
+  FDate := I * 365 + I div 4 - I div 100 + I div 400 + MonthOffset[TYear(Year).IsLeap, Month] + Day;
+end;
+
+procedure TDate.Encode(const Year, Month: Word);
+var
+  I: Integer;
+begin
+  if (Year >= Low(YMDDate)) and (Year <= High(YMDDate)) then
+  begin
+    FDate := YMDDate[Year, Month, 1];
+    Exit;
+  end;
+  I := Year - 1;
+  FDate := I * 365 + I div 4 - I div 100 + I div 400 + MonthOffset[TYear(Year).IsLeap, Month] + 1;
+end;
+
+procedure TDate.Encode(const Year: Word);
+var
+  I: Integer;
+begin
+  if (Year >= Low(YMDDate)) and (Year <= High(YMDDate)) then
+  begin
+    FDate := YMDDate[Year, 1, 1];
+    Exit;
+  end;
+
+  I := Year - 1;
+  FDate := I * 365 + I div 4 - I div 100 + I div 400 + 1;
 end;
 
 procedure TDate.Encode(const Year: TYear; const Month: TMonth; const Day: TDay);
@@ -857,11 +828,8 @@ begin
 end;
 
 function TDate.GetYear: TYear;
-var
-  Y, M, D: Word;
 begin
-  Decode(Y, M, D);
-  Result.FYear := Y;
+  Decode(Result.FYear);
 end;
 
 procedure TDate.SetYear(const Value: TYear);
@@ -898,11 +866,9 @@ end;
 
 function TDate.GetMonthOfYear: TMonthOfYear;
 var
-  Y: TYear;
-  M: TMonth;
-  D: TDay;
+  Y, M: Word;
 begin
-  Decode(Y, M, D);
+  Decode(Y, M);
   Result.FYear := Y;
   Result.FMonth := M;
 end;
@@ -1129,16 +1095,6 @@ begin
   Result.FTime := a;
 end;
 
-class operator TTime.Negative(const a: TTime): TTime;
-begin
-  Result.FTime := -a.FTime;
-end;
-
-class operator TTime.Positive(const a: TTime): TTime;
-begin
-  Result.FTime := +a.FTime;
-end;
-
 function TTime.GetISO: string;
 begin
   Result := FormatDateTime('HH:NN:SS', Self);
@@ -1146,7 +1102,7 @@ end;
 
 procedure TTime.SetISO(const Value: string);
 begin
-  Parse(Value, ISO8601FormatSettings);
+  Parse(Value, ISO8601DateFormatSettings);
 end;
 
 procedure TTime.Encode(Hour, Min, Sec, MSec: Word);
@@ -1499,16 +1455,6 @@ begin
     Result := a.FYear <= b.FYear;
 end;
 
-class operator TYear.Negative(const a: TYear): TYear;
-begin
-  Result.FYear := -a.FYear;
-end;
-
-class operator TYear.Positive(const a: TYear): TYear;
-begin
-  Result.FYear := +a.FYear;
-end;
-
 class operator TYear.Add(const a: TYear; const b: Word): TYear;
 begin
   Result.FYear := a.FYear + b;
@@ -1531,7 +1477,8 @@ end;
 
 function TYear.IsLeap: Boolean;
 begin
-  Result := (FYear mod 4 = 0) and ((FYear mod 100 <> 0) or (FYear mod 400 = 0));
+  Result := YearIsLeap[FYear];
+//  Result := (FYear mod 4 = 0) and ((FYear mod 100 <> 0) or (FYear mod 400 = 0));
 end;
 
 class operator TYear.Multiply(const a: TYear; const b: Word): TYear;
@@ -1553,12 +1500,12 @@ end;
 
 function TYearHelper.First: TDate;
 begin
-  Result := TDate.Create(Self, 1, 1);
+  Result.Encode(FYear);
 end;
 
 function TYearHelper.Last: TDate;
 begin
-  Result := TDate.Create(Self, 12, 31);
+  Result.Encode(FYear, 12, 31);
 end;
 
 function TYearHelper.Sequence: TDate.TSequence;
@@ -1589,33 +1536,28 @@ begin
 end;
 
 class operator TMonth.Explicit(const a: string): TMonth;
+var
+  I: Word;
 begin
-  if FormatSettings.LongMonthNames[1] = a then
-    Result.FMonth := 1
-  else if FormatSettings.LongMonthNames[2] = a then
-    Result.FMonth := 2
-  else if FormatSettings.LongMonthNames[3] = a then
-    Result.FMonth := 3
-  else if FormatSettings.LongMonthNames[4] = a then
-    Result.FMonth := 4
-  else if FormatSettings.LongMonthNames[5] = a then
-    Result.FMonth := 5
-  else if FormatSettings.LongMonthNames[6] = a then
-    Result.FMonth := 6
-  else if FormatSettings.LongMonthNames[7] = a then
-    Result.FMonth := 7
-  else if FormatSettings.LongMonthNames[8] = a then
-    Result.FMonth := 8
-  else if FormatSettings.LongMonthNames[9] = a then
-    Result.FMonth := 9
-  else if FormatSettings.LongMonthNames[10] = a then
-    Result.FMonth := 10
-  else if FormatSettings.LongMonthNames[11] = a then
-    Result.FMonth := 11
-  else if FormatSettings.LongMonthNames[12] = a then
-    Result.FMonth := 12
-  else
-    raise EConvertError.Create('Invalid month name "' + a + '"');
+  for I in [1..12] do
+  begin
+    if AnsiSameText(FormatSettings.LongMonthNames[I], a) then
+    begin
+      Result.FMonth := I;
+      Exit;
+    end;
+  end;
+
+  for I in [1..12] do
+  begin
+    if AnsiSameText(FormatSettings.ShortMonthNames[I], a) then
+    begin
+      Result.FMonth := I;
+      Exit;
+    end;
+  end;
+
+  raise EConvertError.Create('Invalid month name "' + a + '"');
 end;
 
 class operator TMonth.Equal(const a, b: TMonth): Boolean;
@@ -1677,12 +1619,18 @@ end;
 
 function TMonthHelper.First(const Year: TYear): TDate;
 begin
-  Result := TDate.Create(Year, Self, TDay(1));
+  Result.Encode(Year, FMonth);
 end;
 
 function TMonthHelper.Last(const Year: TYear): TDate;
 begin
-  Result := TDate.Create(Year, Self, TDay(Count(Year)));
+  if FMonth = 12 then
+    Result.Encode(Year.FYear, 12, 31)
+  else
+  begin
+    Result.Encode(Year.FYear, FMonth + 1, 1);
+    Dec(Result.FDate);
+  end;
 end;
 
 function TMonthHelper.Sequence(const Year: TYear): TDate.TSequence;
@@ -1762,16 +1710,6 @@ begin
   Result.FDay := a.FDay * b;
 end;
 
-class operator TDay.Negative(const a: TDay): TDay;
-begin
-  Result.FDay := -a.FDay;
-end;
-
-class operator TDay.Positive(const a: TDay): TDay;
-begin
-  Result.FDay := +a.FDay;
-end;
-
 class operator TDay.Dec(const a: TDay): TDay;
 begin
   Result.FDay := a.FDay - 1;
@@ -1786,8 +1724,8 @@ end;
 
 constructor TDateTime.Create(const Value: TDateTime);
 begin
-  FDate := Value.Date;
-  FTime := Value.Time;
+  FDate := Value.FDate;
+  FTime := Value.FTime;
 end;
 
 constructor TDateTime.Create(const Value: TDate);
@@ -1847,42 +1785,52 @@ end;
 
 class operator TDateTime.Equal(const a, b: TDateTime): Boolean;
 begin
-  Result := System.TDateTime(a) = System.TDateTime(b);
+  Result := (a.Date = b.Date) and (a.Time = b.Time);
 end;
 
 class operator TDateTime.NotEqual(const a, b: TDateTime): Boolean;
 begin
-  Result := System.TDateTime(a) <> System.TDateTime(b);
+  Result := (a.Date <> b.Date) or (a.Time = b.Time);
 end;
 
 class operator TDateTime.LessThan(const a, b: TDateTime): Boolean;
 begin
-  Result := System.TDateTime(a) < System.TDateTime(b);
+  if a.Date < b.Date then
+    Result := True
+  else if a.Date > b.Date then
+    Result := False
+  else
+    Result := a.Time < b.Time;
 end;
 
 class operator TDateTime.LessThanOrEqual(const a, b: TDateTime): Boolean;
 begin
-  Result := System.TDateTime(a) <= System.TDateTime(b);
+  if a.Date < b.Date then
+    Result := True
+  else if a.Date > b.Date then
+    Result := False
+  else
+    Result := a.Time <= b.Time;
 end;
 
 class operator TDateTime.GreaterThan(const a, b: TDateTime): Boolean;
 begin
-  Result := System.TDateTime(a) > System.TDateTime(b);
+  if a.Date > b.Date then
+    Result := True
+  else if a.Date < b.Date then
+    Result := False
+  else
+    Result := a.Time > b.Time;
 end;
 
 class operator TDateTime.GreaterThanOrEqual(const a, b: TDateTime): Boolean;
 begin
-  Result := System.TDateTime(a) > System.TDateTime(b);
-end;
-
-class operator TDateTime.Negative(const a: TDateTime): TDateTime;
-begin
-  Result := -System.TDateTime(a);
-end;
-
-class operator TDateTime.Positive(const a: TDateTime): TDateTime;
-begin
-  Result := +System.TDateTime(a);
+  if a.Date > b.Date then
+    Result := True
+  else if a.Date < b.Date then
+    Result := False
+  else
+    Result := a.Time >= b.Time;
 end;
 
 class function TDateTime.Now: TDateTime;
@@ -2014,14 +1962,12 @@ end;
 
 class function TMonthOfYear.Current: TMonthOfYear;
 begin
-  Result.Create(Now);
+  Result := TDate.Today.MonthOfYear;
 end;
 
 class operator TMonthOfYear.Explicit(const a: System.TDateTime): TMonthOfYear;
-var
-  D: TDay;
 begin
-  TDate(a).Decode(Result.FYear, Result.FMonth, D);
+  Result := TDate(a).MonthOfYear;
 end;
 
 class operator TMonthOfYear.Equal(const a, b: TMonthOfYear): Boolean;
@@ -2069,6 +2015,16 @@ begin
   Result.Index := a.Index - b;
 end;
 
+class operator TMonthOfYear.Inc(const a: TMonthOfYear): TMonthOfYear;
+begin
+  Result.Index := a.Index + 1;
+end;
+
+class operator TMonthOfYear.Dec(const a: TMonthOfYear): TMonthOfYear;
+begin
+  Result.Index := a.Index - 1;
+end;
+
 function TMonthOfYear.GetCount: Word;
 begin
   Result := Month.Count(Year);
@@ -2104,7 +2060,7 @@ end;
 
 function TMonthOfYearHelper.Last: TDate;
 begin
-  Result.Encode(Year, Month, TDay(Count));
+  Result := Month.Last(Year);
 end;
 
 function TMonthOfYearHelper.Sequence: TDate.TSequence;
@@ -2120,10 +2076,13 @@ var
   A: array[0..1] of Char;
   DOW: Integer;
 begin
-  GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_IFIRSTDAYOFWEEK, A, SizeOf(A));
-  DOW := Ord(A[0]) - Ord('0');
-  if DOW in [0..6] then
-    FirstDayOfWeek := SysDOW[DOW]
+  try
+    GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_IFIRSTDAYOFWEEK, A, SizeOf(A));
+    DOW := Ord(A[0]) - Ord('0');
+    if DOW in [0..6] then
+      FirstDayOfWeek := SysDOW[DOW];
+  except
+  end;
 end;
 {$ENDIF}
 
