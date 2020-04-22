@@ -293,7 +293,8 @@ type
   public type
     TSequence = record
     private
-      FFirst, FLast: Integer;
+      FFirst: Integer;
+      FLast: Integer;
     public
       constructor Create(const First, Last: TDate);
       function  GetEnumerator: TSequenceEnumerator; inline;
@@ -488,6 +489,15 @@ type
     function  Sequence: TDate.TSequence; inline;
   end;
 
+  TDateSequenceHelper = record helper for TDate.TSequence
+  private
+    function  GetFirst: TDate; inline;
+    function  GetLast: TDate; inline;
+  public
+    property  First: TDate read GetFirst;
+    property  Last: TDate read GetLast;
+  end;
+
   /// Predefined constants for fast calculations
   {$include Ext.Types.Date.FastCalc.inc}
   {$include Ext.Types.Date.Leap.inc}
@@ -509,9 +519,35 @@ const
 var
   FirstDayOfWeek: TWeekday = (FDay: 1);
 
+function Today: TDate; inline;
+function Date: TDate; inline;
+function Time: TTime; inline;
+function Now: TDateTime; inline;
+
 implementation
 
 uses System.SysConst;
+
+function Today: TDate;
+begin
+  Result := TDate.Today;
+end;
+
+function Date: TDate;
+begin
+  Result := TDate.Today;
+end;
+
+function Time: TTime;
+begin
+  Result := TTime.Now;
+end;
+
+function Now: TDateTime;
+begin
+  Result := TDateTime.Now;
+end;
+
 
 // a little slower, but no longer need a Math dependency
 procedure DivMod(Dividend: Cardinal; Divisor: Word; var Result, Remainder: Word); inline;
@@ -1916,8 +1952,8 @@ end;
 
 constructor TDate.TSequence.Create(const First, Last: TDate);
 begin
-  FFirst := Integer(First);
-  FLast := Integer(Last);
+  FFirst := First.FDate;
+  FLast := Last.FDate;
 end;
 
 function TDate.TSequence.GetEnumerator: TSequenceEnumerator;
@@ -2044,6 +2080,18 @@ end;
 function TMonthOfYearHelper.Sequence: TDate.TSequence;
 begin
   Result := TDate.TSequence.Create(First, Last);
+end;
+
+{ TDateSequenceHelper }
+
+function TDateSequenceHelper.GetFirst: TDate;
+begin
+  Result.FDate := FFirst;
+end;
+
+function TDateSequenceHelper.GetLast: TDate;
+begin
+  Result.FDate := FLast;
 end;
 
 {$IFDEF MSWINDOWS}
