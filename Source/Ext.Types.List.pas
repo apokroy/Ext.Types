@@ -2,7 +2,8 @@ unit Ext.Types.List;
 
 interface
 
-uses System.Types, System.SysUtils, System.Variants, System.Classes, System.Generics.Defaults, System.Generics.Collections;
+uses System.Types, System.SysUtils, System.Variants, System.Classes,
+  System.Generics.Defaults, System.Generics.Collections;
 
 type
   List<T> = record
@@ -26,16 +27,20 @@ type
     function  GetElement(const Index: Integer): T; inline;
     procedure SetElement(const Index: Integer; const Value: T); inline;
     function  GetCount: Integer; inline;
+    class procedure Error(Msg: PResStringRec; Data: NativeInt); overload; static;
   public
     class function AsString(const Elem: T): string; static;
     class procedure QuickSort(var Values: TArray<T>; const Comparer: IComparer<T>; L, R: Integer); static;
     function  Contains(const Value: T): Boolean;
     function  Copy(const Index, Count: Integer): List<T>; overload; inline;
+    function  Delete(const Index: Integer): List<T>;
     function  Every(const Callback: TTest): Boolean;
     function  Filter(const Callback: TTest): List<T>;
     function  Find(const Callback: TTest): T; overload;
     function  FindIndex(const Callback: TTest): Integer; overload;
     function  IndexOf(const Value: T; FromIndex: Integer = 0; ToIndex: Integer = MaxInt): Integer;
+    function  Insert(const Index: Integer; const Item: T): List<T>; overload;
+    function  Insert(const Index: Integer; const Items: List<T>): List<T>; overload;
     function  Join(const Separator: string = ','; const Filter: TTest = nil): string;
     function  Map<DstT>(const Callback: TMap<DstT>): List<DstT>; overload;
     function  Map<DstT>(const Callback: TMap<DstT>; const Filter: TTest): List<DstT>; overload;
@@ -53,18 +58,21 @@ type
     property  Element[const Index: Integer]: T read GetElement write SetElement; default;
     property  Items: TArray<T> read FItems;
   public
-//    class operator  Explicit(const A: List<T>): List<T>; inline;
-    class operator  Implicit(const A: TArray<T>): List<T>; inline;
-    class operator  Implicit(const A: array of T): List<T>;
-    class operator  Implicit(const A: List<T>): TArray<T>; inline;
-    class operator  Equal(const A, B: List<T>): Boolean;
-    class operator  NotEqual(const A, B: List<T>): Boolean; inline;
-    class operator  Add(const A, B: List<T>): List<T>; inline;
+    class operator Initialize(out A: List<T>);
+    class operator Finalize(var A: List<T>);
+    class operator Assign(var Result: List<T>; const [ref] Src: List<T>); inline;
+    class operator Implicit(const A: TArray<T>): List<T>; inline;
+    class operator Implicit(const A: array of T): List<T>;
+    class operator Implicit(const A: List<T>): TArray<T>; inline;
+    class operator Equal(const A, B: List<T>): Boolean;
+    class operator NotEqual(const A, B: List<T>): Boolean; inline;
+    class operator Add(const A, B: List<T>): List<T>; inline;
+    class operator Add(const A: List<T>; const B: T): List<T>; inline;
   end;
 
 implementation
 
-uses System.SysConst, System.Rtti;
+uses System.SysConst, System.RTLConsts, System.Rtti;
 
 { List<T>.TEnumerator }
 
@@ -87,6 +95,21 @@ begin
 end;
 
 { List<T> }
+
+class operator List<T>.Initialize(out A: List<T>);
+begin
+  SetLength(A.FItems, 0);
+end;
+
+class operator List<T>.Finalize(var A: List<T>);
+begin
+  A.FItems := nil;
+end;
+
+class procedure List<T>.Error(Msg: PResStringRec; Data: NativeInt);
+begin
+  raise EListError.CreateFmt(LoadResString(Msg), [Data]) at ReturnAddress;
+end;
 
 function List<T>.GetCount: Integer;
 begin
@@ -118,10 +141,10 @@ begin
   Result := TEnumerator.Create(@Self);
 end;
 
-{class operator List<T>.Explicit(const A: List<T>): List<T>;
+class operator List<T>.Assign(var Result: List<T>; const [ref] Src: List<T>);
 begin
-  Result.FItems := Copy(A.FItems, 0, Length(A.FItems));
-end;}
+  Result.FItems := System.Copy(Src.FItems, 0, System.Length(Src.FItems));
+end;
 
 class operator List<T>.Implicit(const A: List<T>): TArray<T>;
 begin
@@ -149,6 +172,11 @@ end;
 class operator List<T>.Add(const A, B: List<T>): List<T>;
 begin
   Result.FItems := A.FItems + B.FItems;
+end;
+
+class operator List<T>.Add(const A: List<T>; const B: T): List<T>;
+begin
+  Result.FItems := A.FItems + [B];
 end;
 
 class operator List<T>.Equal(const A, B: List<T>): Boolean;
@@ -380,7 +408,7 @@ begin
     FirstIndex := High - FirstIndex;
 
   if LastIndex < 0 then
-    LastIndex := High - LastIndex;
+    LastIndex := High + LastIndex;
 
   if FirstIndex < Low then
     FirstIndex := Low;
@@ -402,6 +430,40 @@ end;
 function List<T>.Copy(const Index, Count: Integer): List<T>;
 begin
   Result.FItems := System.Copy(FItems, Index, Count);
+end;
+
+function List<T>.Delete(const Index: Integer): List<T>;
+begin
+  if (Index < Low) or (Index > High) then
+    Error(@SListIndexError, Index);
+
+  if Index = Low then
+    Result.FItems := System.Copy(FItems, Index + 1, High - Index)
+  else if Index = High then
+    Result.FItems := System.Copy(FItems, Low, High - Low)
+  else
+  begin
+    Result.FItems := System.Copy(FItems, Low, Index - Low);
+    Result.FItems := Result.FItems + System.Copy(FItems, Index + 1, High - Index);
+  end;
+end;
+
+function List<T>.Insert(const Index: Integer; const Item: T): List<T>;
+begin
+  if (Index < Low) or (Index > High) then
+    Error(@SListIndexError, Index);
+
+  Result.FItems := System.Copy(FItems);
+  System.Insert([Item], Result.FItems, Index);
+end;
+
+function List<T>.Insert(const Index: Integer; const Items: List<T>): List<T>;
+begin
+  if (Index < Low) or (Index > High) then
+    Error(@SListIndexError, Index);
+
+  Result.FItems := System.Copy(FItems);
+  System.Insert(Items.FItems, Result.FItems, Index);
 end;
 
 function List<T>.Some(const Callback: TTest): Boolean;
