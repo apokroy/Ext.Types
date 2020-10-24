@@ -21,3 +21,8 @@ end;
 __very raw version, only for experiments__
 
 Generic List\<T>, wrapping system TArray\<T> type. Supports modern set of functions like Filter, Join, Map, Reduce etc.
+
+### Ext.Types.SmartPtr
+Smart pointers
+
+Uses ovverloading Assigment operator overloading, record Initialization and Finalization introduced in Delphi 10.4.
