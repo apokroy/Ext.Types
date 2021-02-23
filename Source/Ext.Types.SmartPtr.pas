@@ -30,6 +30,7 @@ type
     class operator Finalize(var A: Ref<T>);
     class operator Assign(var Result: Ref<T>; const [ref] Src: Ref<T>); static; inline;
     class operator Explicit(const R: T): Ref<T>; static; inline;
+    class operator Implicit(const R: T): Ref<T>; static; inline;
     class operator Implicit(const R: Ref<T>): T; static; inline;
     class operator Explicit(const R: Ref<T>): T; static; inline;
     class operator Equal(const L, R: Ref<T>): Boolean; static; inline;
@@ -39,9 +40,6 @@ type
     class operator NotEqual(const L: Ref<T>; const R: T): Boolean; static; inline;
     class operator NotEqual(const L: T; const R: Ref<T>): Boolean; static; inline;
   end;
-
-resourcestring
-  SNilReferenceError = 'Access to a nil reference';
 
 implementation
 
@@ -80,6 +78,7 @@ end;
 
 class operator Ref<T>.Assign(var Result: Ref<T>; const [ref] Src: Ref<T>);
 begin
+  Result.Release;
   Result.Ref := Src.Ref;
   if Result.Ref <> nil then
     Inc(Result.Ref.Count);
@@ -94,19 +93,18 @@ begin
   Result.Ref.Obj := R;
 end;
 
+class operator Ref<T>.Implicit(const R: T): Ref<T>;
+begin
+  Result := Ref<T>(R);
+end;
+
 class operator Ref<T>.Implicit(const R: Ref<T>): T;
 begin
-  if R.Ref = nil then
-    raise ENilReference.Create(SNilReferenceError);
-
   Result := R.Ref.Obj;
 end;
 
 class operator Ref<T>.Explicit(const R: Ref<T>): T;
 begin
-  if R.Ref = nil then
-    raise ENilReference.Create(SNilReferenceError);
-
   Result := R.Ref.Obj;
 end;
 
