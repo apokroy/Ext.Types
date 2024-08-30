@@ -163,17 +163,17 @@ end;
 procedure TestTDate.TestStartOfMonth;
 begin
   FDate.Encode(2020, 2, 29);
-  CheckEquals(2020, FDate.StartOfMonth.Year);
-  CheckEquals(2, FDate.StartOfMonth.Month);
-  CheckEquals(1, FDate.StartOfMonth.Day);
+  CheckEquals(2020, FDate.MonthOfYear.First.Year);
+  CheckEquals(2, FDate.MonthOfYear.First.Month);
+  CheckEquals(1, FDate.MonthOfYear.First.Day);
 end;
 
 procedure TestTDate.TestEndOfMonth;
 begin
   FDate.Encode(2020, 2, 1);
-  CheckEquals(2020, FDate.EndOfMonth.Year);
-  CheckEquals(2, FDate.EndOfMonth.Month);
-  CheckEquals(29, FDate.EndOfMonth.Day);
+  CheckEquals(2020, FDate.MonthOfYear.Last.Year);
+  CheckEquals(2, FDate.MonthOfYear.Last.Month);
+  CheckEquals(29, FDate.MonthOfYear.Last.Day);
 end;
 
 procedure TestTDate.TestStartOfWeek;

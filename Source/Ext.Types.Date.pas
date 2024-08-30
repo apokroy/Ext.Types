@@ -3,17 +3,28 @@ unit Ext.Types.Date;
 interface
 
 uses
-  System.Types, {$IFDEF MSWINDOWS}Winapi.Windows, {$ENDIF}System.SysUtils;
+  System.Types, {$IFDEF MSWINDOWS}Winapi.Windows, {$ENDIF}System.SysUtils,
+  System.Variants, System.Generics.Collections;
 
 type
   TMonthNum   = 1..12;
   TWeekdayNum = 1..7;
+  TQuarterNum = 1..4;
+
+  TYears   = type Integer;
+  TMonths  = type Integer;
+  TDays    = type Integer;
+  THours   = type Integer;
+  TMinutes = type Integer;
+  TSeconds = type Integer;
 
   TDateParts = record
     Y: Word;
     M: Word;
     D: Word;
   end;
+
+{$region 'Weeks'}
 
   PWeekday = ^TWeekday;
 
@@ -120,11 +131,14 @@ const
   Friday: TWeekday = (FDay: 6);
   Saturday: TWeekday = (FDay: 7);
 
+{$endregion}
+
+{$region 'Day'}
+
 type
   PDay = ^TDay;
   ///<summary>
-  ///  Type reperesenting day of month.
-  ///  Type impilicitly compatible with Word
+  ///  Type reperesenting day of month
   ///</summary>
   TDay = record
   private
@@ -147,7 +161,9 @@ type
     class operator LessThan(const a, b: TDay) : Boolean; inline;
     class operator LessThanOrEqual(const a, b: TDay) : Boolean; inline;
   end;
+{$endregion}
 
+{$region 'Year'}
   PYear = ^TYear;
 
   ///<summary>
@@ -186,15 +202,138 @@ type
     class operator LessThanOrEqual(const a, b: TYear) : Boolean; inline;
   end;
 
+{$endregion}
+
+{$region 'Quarter'}
+
+  PQuarter = ^TQuarter;
+
+  TQuarter = record
+  private
+    FQuarter: Word;
+  private type
+    TSequenceEnumerator = class
+    private
+      FLast, FCurrent: Word;
+      function  GetCurrent: TQuarter; inline;
+    public
+      constructor Create(const First, Last: TQuarterNum);
+      function  MoveNext: Boolean; inline;
+      property  Current: TQuarter read GetCurrent;
+    end;
+  public type
+    TSequence = record
+    private
+      FFirst: TQuarterNum;
+      FLast: TQuarterNum;
+      FCount: Integer;
+    public
+      constructor Create(const First, Last: TQuarter);
+      function  GetEnumerator: TSequenceEnumerator; inline;
+      property  Count: Integer read FCount;
+    end;
+  public const
+    Roman: array[1..4] of string = ('I', 'II', 'III', 'IV');
+    Arabic: array[1..4] of string = ('1', '2', '3', '4');
+    Unicode: array[1..4] of string = (#2160, #2161, #2162, #2163);
+  public
+    class function Range(const First, Last: TQuarter): TSequence; static; inline;
+  public
+    class operator Add(const a: TQuarter; b: Word): TQuarter; inline;
+    class operator Subtract(const a, b: TQuarter): Integer; inline;
+    class operator Subtract(const a: TQuarter; const b: Word): TQuarter; inline;
+    class operator Implicit(const a: Word): TQuarter; inline;
+    class operator Implicit(const a: TQuarter): Word; inline;
+    class operator Implicit(const a: TQuarterNum): TQuarter; inline;
+    class operator Implicit(const a: TQuarter): TQuarterNum; inline;
+    class operator Explicit(const a: string): TQuarter; inline;
+    class operator Explicit(const a: TQuarter): string; inline;
+    class operator Equal(const a, b: TQuarter) : Boolean; inline;
+    class operator NotEqual(const a, b: TQuarter) : Boolean; inline;
+    class operator GreaterThan(const a, b: TQuarter) : Boolean; inline;
+    class operator GreaterThanOrEqual(const a, b: TQuarter) : Boolean; inline;
+    class operator LessThan(const a, b: TQuarter) : Boolean; inline;
+    class operator LessThanOrEqual(const a, b: TQuarter) : Boolean; inline;
+  end;
+
+  TQuarters = type TQuarter.TSequence;
+
+const
+  Quarter1: TQuarter = (FQuarter: 1);
+  Quarter2: TQuarter = (FQuarter: 2);
+  Quarter3: TQuarter = (FQuarter: 3);
+  Quarter4: TQuarter = (FQuarter: 4);
+
+type
+  PQuarterOfYear = ^TQuarterOfYear;
+
+  ///<summary>
+  ///  Type allows increment & decrement Quarter to iterate through years and quarters
+  ///</summary>
+  TQuarterOfYear = record
+  private
+    FYear: TYear;
+    FQuarter: TQuarter;
+    procedure SetQuarter(const Value: TQuarter); inline;
+    procedure SetYear(const Value: TYear); inline;
+    function  GetIndex: Integer; inline;
+    procedure SetIndex(const Value: Integer); inline;
+    property  Index: Integer read GetIndex write SetIndex;
+  public
+    constructor Create(const Date: System.TDateTime); overload;
+    constructor Create(const Year: TYear; const Quarter: TQuarter); overload;
+    class function Current: TQuarterOfYear; static; inline;
+    property  Year: TYear read FYear write SetYear;
+    property  Quarter: TQuarter read FQuarter write SetQuarter;
+  public
+    class operator Explicit(const a: System.TDateTime): TQuarterOfYear; inline;
+    class operator Add(const a: TQuarterOfYear; b: Word): TQuarterOfYear; inline;
+    class operator Subtract(const a, b: TQuarterOfYear): Integer; inline;
+    class operator Subtract(const a: TQuarterOfYear; const b: Word): TQuarterOfYear; inline;
+    class operator Inc(const a: TQuarterOfYear): TQuarterOfYear; inline;
+    class operator Dec(const a: TQuarterOfYear): TQuarterOfYear; inline;
+    class operator Equal(const a, b: TQuarterOfYear) : Boolean; inline;
+    class operator NotEqual(const a, b: TQuarterOfYear) : Boolean; inline;
+    class operator GreaterThan(const a, b: TQuarterOfYear) : Boolean; inline;
+    class operator GreaterThanOrEqual(const a, b: TQuarterOfYear) : Boolean; inline;
+    class operator LessThan(const a, b: TQuarterOfYear) : Boolean; inline;
+    class operator LessThanOrEqual(const a, b: TQuarterOfYear) : Boolean; inline;
+  end;
+
+{$endregion}
+
+{$region 'Month'}
+
+type
   PMonth = ^TMonth;
 
   ///<summary>
-  ///  Type reperesenting a month.
-  ///  Type impilicitly compatible with Word
+  ///  Type reperesenting a month
   ///</summary>
   TMonth = record
   private
     FMonth: Word;
+  private type
+    TSequenceEnumerator = class
+    private
+      FLast, FCurrent: Word;
+      function  GetCurrent: TMonth; inline;
+    public
+      constructor Create(const First, Last: TMonthNum);
+      function  MoveNext: Boolean; inline;
+      property  Current: TMonth read GetCurrent;
+    end;
+  public type
+    TSequence = record
+    private
+      FFirst: TMonthNum;
+      FLast: TMonthNum;
+      FCount: Integer;
+    public
+      constructor Create(const First, Last: TMonth);
+      function  GetEnumerator: TSequenceEnumerator; inline;
+      property  Count: Integer read FCount;
+    end;
   public
     ///<summary>
     ///  Name of the month as in LongMonthNames of system global FormatSettings
@@ -207,7 +346,7 @@ type
     ///<summary>
     ///  Returns count of days in month of a Year
     ///</summary>
-    function  Count(const Year: TYear): Word; inline;
+    function  Days(const Year: TYear): TDays; inline;
   public
     class operator Add(const a: TMonth; b: Word): TMonth; inline;
     class operator Subtract(const a, b: TMonth): Integer; inline;
@@ -248,20 +387,44 @@ type
   private
     FYear: TYear;
     FMonth: TMonth;
-    function  GetCount: Word; inline;
+    function  GetDays: TDays; inline;
     procedure SetMonth(const Value: TMonth); inline;
     procedure SetYear(const Value: TYear); inline;
     function  GetIndex: Integer; inline;
     procedure SetIndex(const Value: Integer); inline;
     property  Index: Integer read GetIndex write SetIndex;
+  private type
+    TSequenceEnumerator = class
+    private
+      FCurrent: Integer;
+      FLast: TMonth;
+      function  GetCurrent: TMonthOfYear; inline;
+    public
+      constructor Create(const FirstMonth: TMonth; const FirstYear: TYear; const LastMonth: TMonth; const LastYear: TYear);
+      function  MoveNext: Boolean; inline;
+      property  Current: TMonthOfYear read GetCurrent;
+    end;
+  public type
+    TSequence = record
+    private
+      FFirstYear: TYear;
+      FFirstMonth: TMonth;
+      FLastYear: TYear;
+      FLastMonth: TMonth;
+      FCount: Integer;
+    public
+      constructor Create(const First, Last: TMonthOfYear);
+      function  GetEnumerator: TSequenceEnumerator; inline;
+    end;
   public
     constructor Create(const Date: System.TDateTime); overload;
     constructor Create(const Year: TYear; const Month: TMonth); overload;
     class function Current: TMonthOfYear; static; inline;
     property  Year: TYear read FYear write SetYear;
     property  Month: TMonth read FMonth write SetMonth;
-    property  Count: Word read GetCount;
+    property  Days: TDays read GetDays;
   public
+    class operator Implicit(const a: TMonthOfYear): TMonth; inline;
     class operator Explicit(const a: System.TDateTime): TMonthOfYear; inline;
     class operator Add(const a: TMonthOfYear; b: Word): TMonthOfYear; inline;
     class operator Subtract(const a, b: TMonthOfYear): Integer; inline;
@@ -276,6 +439,9 @@ type
     class operator LessThanOrEqual(const a, b: TMonthOfYear) : Boolean; inline;
   end;
 
+{$endregion}
+
+{$region 'Date'}
 type
   PDate = ^TDate;
 
@@ -295,9 +461,11 @@ type
     private
       FFirst: Integer;
       FLast: Integer;
+      FCount: Integer;
     public
       constructor Create(const First, Last: TDate);
       function  GetEnumerator: TSequenceEnumerator; inline;
+      property  Count: Integer read FCount;
     end;
   private
     FDate: Integer; // Date stamp - number of days from 00001-01-01
@@ -305,6 +473,8 @@ type
     function  GetISO: string; inline;
     function  GetMonth: TMonth; inline;
     function  GetWeekday: TWeekday; inline;
+    function  GetQuarter: TQuarter; inline;
+    function  GetQuarterOfYear: TQuarterOfYear; inline;
     function  GetYear: TYear; inline;
     procedure SetDay(const Value: TDay); inline;
     procedure SetISO(const Value: string);
@@ -330,15 +500,17 @@ type
     procedure Encode(const Year, Month: Word); overload; inline;
     procedure Encode(const Year: Word); overload; inline;
     procedure Encode(const Year: TYear; const Month: TMonth; const Day: TDay); overload; inline;
-    procedure Decode(var Year, Month, Day: Word); overload; inline;
+    procedure Decode(var Year, Month, Day: Word); overload;
     procedure Decode(var Year, Month: Word); overload; inline;
     procedure Decode(var Year: Word); overload; inline;
     procedure Decode(var Year: TYear; var Month: TMonth; var Day: TDay); overload; inline;
     property  Day: TDay read GetDay write SetDay;
     property  Month: TMonth read GetMonth write SetMonth;
+    property  Quarter: TQuarter read GetQuarter;
     property  Year: TYear read GetYear write SetYear;
     property  Weekday: TWeekday read GetWeekday write SetWeekday;
     property  MonthOfYear: TMonthOfYear read GetMonthOfYear write SetMonthOfYear;
+    property  QuarterOfYear: TQuarterOfYear read GetQuarterOfYear;
     property  ISO: string read GetISO write SetISO;
   public
     constructor Create(const Date: TDate); overload;
@@ -354,6 +526,10 @@ type
     class operator Subtract(const a, b: TDate): Integer; inline;
     class operator Implicit(const a: System.TDateTime): TDate; inline;
     class operator Implicit(const a: TDate): System.TDateTime; inline;
+    class operator Implicit(const a: TTimeStamp): TDate; inline;
+    class operator Implicit(const a: TDate): TTimeStamp; inline;
+    class operator Implicit(const a: Variant): TDate; inline;
+    class operator Implicit(const a: TDate): Variant; inline;
     class operator Explicit(const a: Integer): TDate; inline;
     class operator Explicit(const a: TDate): Integer; inline;
     class operator Explicit(const a: TDate): string; inline;
@@ -368,12 +544,19 @@ type
     class operator LessThanOrEqual(const a, b: TDate) : Boolean; inline;
   end;
 
+  TDates = type TDate.TSequence;
+
+{$endregion}
+
+{$region 'Time'}
   PTime = ^TTime;
   TTime = record
   private
     FTime: Integer;
     function  GetISO: string; inline;
     procedure SetISO(const Value: string);
+    function  GetMIME: string; inline;
+    procedure SetMIME(const Value: string);
     function  GetHour: Word; inline;
     function  GetMinute: Word; inline;
     function  GetMSecond: Word; inline;
@@ -395,6 +578,7 @@ type
     procedure Decode(var Hour, Min, Sec, MSec: Word); overload; inline;
     procedure Decode(var Hour, Min, Sec: Word); overload; inline;
     property  ISO: string read GetISO write SetISO;
+    property  MIME: string read GetMIME write SetMIME;
     property  Hour: Word read GetHour write SetHour;
     property  Minute: Word read GetMinute write SetMinute;
     property  Second: Word read GetSecond write SetSecond;
@@ -404,12 +588,22 @@ type
     constructor Create(const Time: System.TDateTime); overload;
     class function Now: TTime; static; inline;
   public
-    class operator Add(const a: TTime; b: Integer): TTime; inline;
-    class operator Add(const a, b: TTime): TTime; inline;
-    class operator Subtract(const a: TTime; b: Integer): TTime; inline;
-    class operator Subtract(const a, b: TTime): Integer; inline;
+    class operator Add(const L: TTime; R: Integer): TTime; inline;
+    class operator Add(const L, R: TTime): TTime; inline;
+    class operator Add(const L: TTime; R: THours): TTime; inline;
+    class operator Add(const L: TTime; R: TMinutes): TTime; inline;
+    class operator Add(const L: TTime; R: TSeconds): TTime; inline;
+    class operator Subtract(const L: TTime; R: Integer): TTime; inline;
+    class operator Subtract(const L, R: TTime): Integer; inline;
+    class operator Subtract(const L: TTime; R: THours): TTime; inline;
+    class operator Subtract(const L: TTime; R: TMinutes): TTime; inline;
+    class operator Subtract(const L: TTime; R: TSeconds): TTime; inline;
     class operator Implicit(const a: System.TDateTime): TTime; inline;
     class operator Implicit(const a: TTime): System.TDateTime; inline;
+    class operator Implicit(const a: TTimeStamp): TTime; inline;
+    class operator Implicit(const a: TTime): TTimeStamp; inline;
+    class operator Implicit(const a: Variant): TTime; inline;
+    class operator Implicit(const a: TTime): Variant; inline;
     class operator Explicit(const a: Integer): TTime; inline;
     class operator Explicit(const a: TTime): Integer; inline;
     class operator Explicit(const a: TTime): string; inline;
@@ -423,6 +617,10 @@ type
     class operator LessThan(const a, b: TTime) : Boolean; inline;
     class operator LessThanOrEqual(const a, b: TTime) : Boolean; inline;
   end;
+
+{$endregion}
+
+{$region 'DateTime'}
 
   PDateTime = ^TDateTime;
   TDateTime = record
@@ -451,6 +649,10 @@ type
   public
     class operator Implicit(const a: System.TDateTime): TDateTime; inline;
     class operator Implicit(const a: TDateTime): System.TDateTime; inline;
+    class operator Implicit(const a: TTimeStamp): TDateTime; inline;
+    class operator Implicit(const a: TDateTime): TTimeStamp; inline;
+    class operator Implicit(const a: Variant): TDateTime; inline;
+    class operator Implicit(const a: TDateTime): Variant; inline;
     class operator Explicit(const a: TDateTime): string; inline;
     class operator Explicit(const a: string): TDateTime; inline;
     class operator Explicit(const a: TDateTime): TDate; inline;
@@ -463,8 +665,63 @@ type
     class operator LessThan(const a, b: TDateTime) : Boolean; inline;
     class operator LessThanOrEqual(const a, b: TDateTime) : Boolean; inline;
   end;
+{$endregion}
 
+{$region 'Time zone'}
+  TTimeZoneBias = -24 * 60..24 * 60;
+
+  TTimeZone = record
+  private class var
+    Timezones: TDictionary<string, TTimeZoneBias>;
+    class constructor Create;
+    class destructor Destroy;
+    class function  SNum(const S: string; const Index: Integer): Integer; inline; static;
+  private
+    FBias: TTimeZoneBias;
+    function  GetMIME: string;
+  public
+    class function System: TTimeZone; static;
+    class procedure Register(const Code: string; Bias: TTimeZoneBias); static;
+    property  MIME: string read GetMIME;
+    property  Bias: TTimeZoneBias read FBias write FBias;
+  public
+    class operator Explicit(const A: TTimeZone): TTime; inline;
+    class operator Explicit(const A: TTime): TTimeZone; inline;
+    class operator Explicit(const A: TTimeZone): string;
+    class operator Explicit(const A: string): TTimeZone;
+    class operator Explicit(const A: TTimeZone): TTimeZoneBias; inline;
+    class operator Explicit(const A: TTimeZoneBias): TTimeZone; inline;
+    class operator Subtract(const L, R: TTimeZone): TMinutes; inline;
+  end;
+{$endregion}
+
+{$region 'Helpers'}
   // Need helpers, because record forward declaration is not allowed
+
+  TQuarterHelper = record helper for TQuarter
+  public const
+    Each: array[1..4] of TQuarter = ((FQuarter: 1), (FQuarter: 2), (FQuarter: 3), (FQuarter: 4));
+  public
+    function  First: TMonth; inline;
+    function  Last: TMonth; inline;
+    function  Dates(const Year: TYear): TDate.TSequence; inline;
+    function  Months: TMonth.TSequence; inline;
+  end;
+
+  TQuarterSequenceHelper = record helper for TQuarter.TSequence
+  public
+    function  First: TQuarter; inline;
+    function  Last: TQuarter; inline;
+    function  Months: TMonth.TSequence; inline;
+  end;
+
+  TQuarterOfYearHelper = record helper for TQuarterOfYear
+  public
+    function  First: TMonthOfYear; inline;
+    function  Last: TMonthOfYear; inline;
+    function  Dates: TDate.TSequence; inline;
+    function  Months: TMonthOfYear.TSequence; inline;
+  end;
 
   TMonthHelper = record helper for TMonth
   public const
@@ -479,14 +736,14 @@ type
   public
     function  First: TDate; inline;
     function  Last: TDate; inline;
-    function  Sequence: TDate.TSequence; inline;
+    function  Dates: TDate.TSequence; inline;
   end;
 
   TYearHelper = record helper for TYear
   public
     function  First: TDate; inline;
     function  Last: TDate; inline;
-    function  Sequence: TDate.TSequence; inline;
+    function  Dates: TDate.TSequence; inline;
   end;
 
   TDateSequenceHelper = record helper for TDate.TSequence
@@ -497,6 +754,7 @@ type
     property  First: TDate read GetFirst;
     property  Last: TDate read GetLast;
   end;
+{$endregion}
 
   /// Predefined constants for fast calculations
   {$include Ext.Types.Date.FastCalc.inc}
@@ -505,6 +763,25 @@ type
   {$include Ext.Types.Date.YMDDate.inc} //predefined for dates from 1970 to 2100 years
 
 const
+  S24: array[0..24] of string = (
+    '00', '01', '02', '03', '04', '05', '06', '07', '08', '09',
+    '10', '11', '12', '13', '14', '15', '16', '17', '18', '19',
+    '20', '21', '22', '23', '24'
+  );
+
+  S60: array[0..60] of string = (
+    '00', '01', '02', '03', '04', '05', '06', '07', '08', '09',
+    '10', '11', '12', '13', '14', '15', '16', '17', '18', '19',
+    '20', '21', '22', '23', '24', '25', '26', '27', '28', '29',
+    '30', '31', '32', '33', '34', '35', '36', '37', '38', '39',
+    '40', '41', '42', '43', '44', '45', '46', '47', '48', '49',
+    '50', '51', '52', '53', '54', '55', '56', '57', '58', '59',
+    '60'
+  );
+
+  MIMEWeekdays: array[1..7] of string = ('Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat');
+  MIMEMonths:   array[1..12] of string = ('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec');
+
   ISO8601DateFormatSettings: TFormatSettings = (
     DateSeparator: '-';
     TimeSeparator: ':';
@@ -524,9 +801,18 @@ function Date: TDate; inline;
 function Time: TTime; inline;
 function Now: TDateTime; inline;
 
+const
+  FMSecsPerDay: Single  = MSecsPerDay;
+  IMSecsPerDay: Integer = MSecsPerDay;
+
+resourcestring
+  SInvalidTimeZone = 'Invalid time zone "%s"';
+  SInvalidQuarter  = 'Invalid quarter format "%s"';
+
 implementation
 
-uses System.SysConst;
+uses
+  System.SysConst, System.Math;
 
 function Today: TDate;
 begin
@@ -548,12 +834,142 @@ begin
   Result := TDateTime.Now;
 end;
 
+{ TTimeZone }
 
-// a little slower, but no longer need a Math dependency
-procedure DivMod(Dividend: Cardinal; Divisor: Word; var Result, Remainder: Word); inline;
+class constructor TTimeZone.Create;
 begin
-  Result := Dividend div Divisor;
-  Remainder := Dividend mod Divisor;
+  Timezones := TDictionary<string, TTimeZoneBias>.Create;
+  Register('UT',   0);
+  Register('UTC',  0);
+  Register('GMT',  0);
+  Register('Z',    0);
+  Register('A',    1 * 60);
+  Register('B',    2 * 60);
+  Register('C',    3 * 60);
+  Register('D',    4 * 60);
+  Register('E',    5 * 60);
+  Register('F',    6 * 60);
+  Register('G',    7 * 60);
+  Register('H',    8 * 60);
+  Register('I',    9 * 60);
+  Register('K',    10 * 60);
+  Register('L',    11 * 60);
+  Register('M',    12 * 60);
+  Register('N',   -1 * 60);
+  Register('O',   -2 * 60);
+  Register('P',   -3 * 60);
+  Register('Q',   -4 * 60);
+  Register('R',   -5 * 60);
+  Register('S',   -6 * 60);
+  Register('T',   -7 * 60);
+  Register('U',   -8 * 60);
+  Register('V',   -9 * 60);
+  Register('W',   -10 * 60);
+  Register('X',   -11 * 60);
+  Register('Y',   -12 * 60);
+end;
+
+class destructor TTimeZone.Destroy;
+begin
+  FreeAndNil(Timezones);
+end;
+
+class procedure TTimeZone.Register(const Code: string; Bias: TTimeZoneBias);
+begin
+  Timezones.AddOrSetValue(Code, Bias);
+end;
+
+class function TTimeZone.System: TTimeZone;
+var
+  Info: TTimeZoneInformation;
+begin
+  case GetTimeZoneInformation(Info) of
+    TIME_ZONE_ID_DAYLIGHT:
+      Result.Bias := Info.Bias + Info.DaylightBias;
+    TIME_ZONE_ID_UNKNOWN, TIME_ZONE_ID_STANDARD:
+      Result.Bias := Info.Bias;
+    else
+      Result.Bias := 0;
+  end;
+end;
+
+function TTimeZone.GetMIME: string;
+begin
+  if Bias > 0 then
+    Result := '-' + S60[Bias div 60] + S60[Bias mod 60]
+  else
+    Result := '+' + S60[Bias div 60] + S60[Bias mod 60];
+end;
+
+class operator TTimeZone.Explicit(const A: TTimeZone): string;
+begin
+  if A.Bias > 0 then
+    Result := '-' + S60[A.Bias div 60] + ':' + S60[A.Bias mod 60]
+  else
+    Result := '+' + S60[A.Bias div 60] + ':' + S60[A.Bias mod 60];
+end;
+
+class operator TTimeZone.Explicit(const A: string): TTimeZone;
+const
+  Sign: array['+'..'-'] of Integer = (-1, 0, 1);
+  Signs: TSysCharSet = ['+', '-'];
+begin
+  case Length(A) of
+    0:
+      Exit(TTimeZone(0));
+    3: //+HH
+      case A[1] of
+        '+': Exit(TTimeZone(-(SNum(A, 2) * 60)));
+        '-': Exit(TTimeZone(+(SNum(A, 2) * 60)));
+      end;
+    5: //+HHMM
+      case A[1] of
+        '+': Exit(TTimeZone(-(SNum(A, 2) * 60 + SNum(A, 4))));
+        '-': Exit(TTimeZone(+(SNum(A, 2) * 60 + SNum(A, 4))));
+      end;
+    6: //+HH:MM
+      if A[4] = ':' then
+        case A[1] of
+          '+': Exit(TTimeZone(-(SNum(A, 2) * 60 + SNum(A, 5))));
+          '-': Exit(TTimeZone(+(SNum(A, 2) * 60 + SNum(A, 5))));
+        end;
+  end;
+
+  if not Timezones.TryGetValue(A, Result.FBias) then
+    raise EConvertError.CreateResFmt(@SInvalidTimeZone, [A]);
+end;
+
+class operator TTimeZone.Explicit(const A: TTimeZone): TTime;
+begin
+  Result.Encode(A.Bias div 60, A.Bias mod 60, 0);
+end;
+
+class operator TTimeZone.Explicit(const A: TTime): TTimeZone;
+var
+  H, M, S: Word;
+begin
+  A.Decode(H, M, S);
+  Result.FBias := H * 60 + M;
+end;
+
+class operator TTimeZone.Explicit(const A: TTimeZone): TTimeZoneBias;
+begin
+  Result := A.Bias;
+end;
+
+class operator TTimeZone.Explicit(const A: TTimeZoneBias): TTimeZone;
+begin
+  Result.Bias := A;
+end;
+
+class function TTimeZone.SNum(const S: string; const Index: Integer): Integer;
+begin
+  Result := (Ord(S[Index]) - 30) * 10 + (Ord(S[Index + 1]) - 30);
+end;
+
+class operator TTimeZone.Subtract(const L, R: TTimeZone): TMinutes;
+begin
+  Result := L.Bias - R.Bias;
 end;
 
 {$region 'Date routine'}
@@ -623,6 +1039,28 @@ end;
 class operator TDate.Subtract(const a: TDate; const b: Integer): TDate;
 begin
   Result.FDate := a.FDate - b;
+end;
+
+class operator TDate.Implicit(const a: TTimeStamp): TDate;
+begin
+  Result.FDate := a.Date;
+end;
+
+class operator TDate.Implicit(const a: TDate): TTimeStamp;
+begin
+  Result.Time := 0;
+  Result.Date := a.FDate;
+end;
+
+class operator TDate.Implicit(const a: Variant): TDate;
+begin
+  Result.FDate := Trunc(VarToDateTime(a)) + DateDelta;
+end;
+
+class operator TDate.Implicit(const a: TDate): Variant;
+begin
+  TVarData(Result).VType := varDate;
+  TVarData(Result).VDate := a.FDate - DateDelta;
 end;
 
 class operator TDate.Inc(const a: TDate): TDate;
@@ -848,17 +1286,26 @@ procedure TDate.SetMonth(const Value: TMonth);
 var
   Y: TYear;
   M: TMonth;
-  D: TDay;
+  D, L: TDay;
 begin
   Decode(Y, M, D);
 
   if M = Value then
     Exit;
 
-  if Value.Count(Y) < D then
-    D := Value.Count(Y);
+  L := MonthDayCount[Y.IsLeap, Word(Value)];
+  if L < D then
+    D := L;
 
   Encode(Y, Value, D);
+end;
+
+function TDate.GetQuarter: TQuarter;
+var
+  Y, M, D: Word;
+begin
+  Decode(Y, M, D);
+  Result.FQuarter := MonthQuarter[M];
 end;
 
 function TDate.GetYear: TYear;
@@ -896,6 +1343,15 @@ end;
 procedure TDate.SetWeekday(const Value: TWeekday);
 begin
   FDate := FDate + Integer(Value - Weekday);
+end;
+
+function TDate.GetQuarterOfYear: TQuarterOfYear;
+var
+  Y, M: Word;
+begin
+  Decode(Y, M);
+  Result.FYear := Y;
+  Result.FQuarter := MonthQuarter[M];
 end;
 
 function TDate.GetMonthOfYear: TMonthOfYear;
@@ -1019,24 +1475,54 @@ begin
 end;
 {$ENDIF POSIX}
 
-class operator TTime.Add(const a: TTime; b: Integer): TTime;
+class operator TTime.Add(const L: TTime; R: Integer): TTime;
 begin
-  Result.FTime := a.FTime + b;
+  Result.FTime := L.FTime + R;
 end;
 
-class operator TTime.Add(const a, b: TTime): TTime;
+class operator TTime.Add(const L, R: TTime): TTime;
 begin
-  Result.FTime := a.FTime + b.FTime;
+  Result.FTime := L.FTime + R.FTime;
 end;
 
-class operator TTime.Subtract(const a, b: TTime): Integer;
+class operator TTime.Subtract(const L, R: TTime): Integer;
 begin
-  Result := a.FTime - b.FTime;
+  Result := L.FTime - R.FTime;
 end;
 
-class operator TTime.Subtract(const a: TTime; b: Integer): TTime;
+class operator TTime.Subtract(const L: TTime; R: Integer): TTime;
 begin
-  Result.FTime:= a.FTime - b;
+  Result.FTime:= L.FTime - R;
+end;
+
+class operator TTime.Add(const L: TTime; R: TSeconds): TTime;
+begin
+  Result.FTime := L.FTime + R * MSecsPerSec;
+end;
+
+class operator TTime.Add(const L: TTime; R: TMinutes): TTime;
+begin
+  Result.FTime := L.FTime + R * SecsPerMin * MSecsPerSec;
+end;
+
+class operator TTime.Add(const L: TTime; R: THours): TTime;
+begin
+  Result.FTime := L.FTime + R * MinsPerHour * SecsPerMin * MSecsPerSec;
+end;
+
+class operator TTime.Subtract(const L: TTime; R: TSeconds): TTime;
+begin
+  Result.FTime := L.FTime - R * MSecsPerSec;
+end;
+
+class operator TTime.Subtract(const L: TTime; R: TMinutes): TTime;
+begin
+  Result.FTime := L.FTime - R * SecsPerMin * MSecsPerSec;
+end;
+
+class operator TTime.Subtract(const L: TTime; R: THours): TTime;
+begin
+  Result.FTime := L.FTime - R * MinsPerHour * SecsPerMin * MSecsPerSec;
 end;
 
 class operator TTime.Dec(const a: TTime): TTime;
@@ -1091,12 +1577,34 @@ end;
 
 class operator TTime.Implicit(const a: TTime): System.TDateTime;
 begin
-  Result := a.FTime / MSecsPerDay;
+  Result := a.FTime / FMSecsPerDay;
 end;
 
 class operator TTime.Implicit(const a: System.TDateTime): TTime;
 begin
-  Result.FTime := Abs(Round(a * MSecsPerDay)) mod MSecsPerDay;
+  Result.FTime := Abs(Round(a * FMSecsPerDay)) mod IMSecsPerDay;
+end;
+
+class operator TTime.Implicit(const a: TTimeStamp): TTime;
+begin
+  Result.FTime := a.Time;
+end;
+
+class operator TTime.Implicit(const a: TTime): TTimeStamp;
+begin
+  Result.Time := a.FTime;
+  Result.Date := 0;
+end;
+
+class operator TTime.Implicit(const a: Variant): TTime;
+begin
+  Result := VarToDateTime(a);
+end;
+
+class operator TTime.Implicit(const a: TTime): Variant;
+begin
+  TVarData(Result).VType := varDate;
+  TVarData(Result).VDate := a.FTime / FMSecsPerDay;
 end;
 
 class operator TTime.Explicit(const a: TTime): Integer;
@@ -1117,6 +1625,47 @@ end;
 procedure TTime.SetISO(const Value: string);
 begin
   Parse(Value, ISO8601DateFormatSettings);
+end;
+
+function TTime.GetMIME: string;
+var
+  H, M, S: Word;
+begin
+  Decode(H, M, S);
+  Result := S24[H] + S60[M] + S60[S];
+end;
+
+procedure TTime.SetMIME(const Value: string);
+var
+  pm, am: Integer;
+  Src: string;
+  H, M, S: Word;
+begin
+  Src := UpperCase(Value);
+  pm := Pos('PM', Src);
+  am := Pos('AM', Src);
+
+  if pm > 0 then
+    Src := Copy(Src, 1, pm - 1)
+  else if am > 0 then
+    Src := Copy(Src, 1, am - 1);
+  Src := Trim(Src);
+
+  var Parts := Src.Split([':']);
+  case Length(Parts) of
+    1: begin H := StrToIntDef(Parts[0], 0); M := 0; S := 0; end;
+    2: begin H := StrToIntDef(Parts[0], 0); M := StrToIntDef(Parts[1], 0); S := 0; end;
+    3: begin H := StrToIntDef(Parts[0], 0); M := StrToIntDef(Parts[1], 0); S := StrToIntDef(Parts[2], 0); end;
+  else
+    begin H := 0; M := 0; S := 0; end;
+  end;
+
+  if (pm > 0) and (H < 12) then
+    H := H + 12
+  else if (am > 0) and (H = 12) then
+    H := 0;
+
+  Encode(H, M, S);
 end;
 
 procedure TTime.Encode(Hour, Min, Sec, MSec: Word);
@@ -1522,9 +2071,342 @@ begin
   Result.Encode(FYear, 12, 31);
 end;
 
-function TYearHelper.Sequence: TDate.TSequence;
+function TYearHelper.Dates: TDate.TSequence;
 begin
   Result := TDate.Sequence(First, Last);
+end;
+
+{ TQuarter.TSequenceEnumerator }
+
+constructor TQuarter.TSequenceEnumerator.Create(const First, Last: TQuarterNum);
+begin
+  FCurrent := First - 1;
+  FLast := Last;
+end;
+
+function TQuarter.TSequenceEnumerator.GetCurrent: TQuarter;
+begin
+  Result.FQuarter := FCurrent;
+end;
+
+function TQuarter.TSequenceEnumerator.MoveNext: Boolean;
+begin
+  Inc(FCurrent);
+  Result := FCurrent <= FLast;
+end;
+
+{ TQuarter.TSequence }
+
+constructor TQuarter.TSequence.Create(const First, Last: TQuarter);
+begin
+  FFirst := First;
+  FLast := Last;
+  FCount := FLast - FFirst + 1;
+end;
+
+function TQuarter.TSequence.GetEnumerator: TSequenceEnumerator;
+begin
+  Result := TQuarter.TSequenceEnumerator.Create(FFirst, FLast);
+end;
+
+{ TQuarter }
+
+class operator TQuarter.Explicit(const a: string): TQuarter;
+var
+  L: Integer;
+begin
+  L := Length(a);
+  if L > 0 then
+  begin
+    case a[1] of
+      '1':   Exit(Quarter1);
+      '2':   Exit(Quarter2);
+      '3':   Exit(Quarter3);
+      '4':   Exit(Quarter4);
+      #2160: Exit(Quarter1);
+      #2161: Exit(Quarter2);
+      #2162: Exit(Quarter3);
+      #2163: Exit(Quarter4);
+      'I': if (L > 2) and (a[2] = 'I') and (a[3] = 'I') then
+             Exit(Quarter3)
+           else if (L > 1) and (a[2] = 'I') then
+             Exit(Quarter2)
+           else if (L > 1) and (a[2] = 'V') then
+             Exit(Quarter4)
+           else
+             Exit(Quarter1);
+    end;
+  end;
+
+  raise EConvertError.CreateResFmt(@SInvalidQuarter, [a]);
+end;
+
+class operator TQuarter.Explicit(const a: TQuarter): string;
+begin
+  Result := Roman[a.FQuarter];
+end;
+
+class operator TQuarter.Implicit(const a: TQuarter): Word;
+begin
+  Result := a.FQuarter;
+end;
+
+class operator TQuarter.Implicit(const a: Word): TQuarter;
+begin
+  Result.FQuarter := a;
+end;
+
+class operator TQuarter.Implicit(const a: TQuarterNum): TQuarter;
+begin
+  Result.FQuarter := a;
+end;
+
+class operator TQuarter.Implicit(const a: TQuarter): TQuarterNum;
+begin
+  Result := a.FQuarter;
+end;
+
+class operator TQuarter.Equal(const a, b: TQuarter): Boolean;
+begin
+  Result := a.FQuarter = b.FQuarter;
+end;
+
+class operator TQuarter.GreaterThan(const a, b: TQuarter): Boolean;
+begin
+  Result := a.FQuarter > b.FQuarter;
+end;
+
+class operator TQuarter.GreaterThanOrEqual(const a, b: TQuarter): Boolean;
+begin
+  Result := a.FQuarter >= b.FQuarter;
+end;
+
+class operator TQuarter.LessThan(const a, b: TQuarter): Boolean;
+begin
+  Result := a.FQuarter < b.FQuarter;
+end;
+
+class operator TQuarter.LessThanOrEqual(const a, b: TQuarter): Boolean;
+begin
+  Result := a.FQuarter <= b.FQuarter;
+end;
+
+class operator TQuarter.NotEqual(const a, b: TQuarter): Boolean;
+begin
+  Result := a.FQuarter <> b.FQuarter;
+end;
+
+class operator TQuarter.Add(const a: TQuarter; b: Word): TQuarter;
+begin
+  Result.FQuarter := a.FQuarter + b;
+end;
+
+class operator TQuarter.Subtract(const a: TQuarter; const b: Word): TQuarter;
+begin
+  Result.FQuarter := a.FQuarter - b;
+end;
+
+class operator TQuarter.Subtract(const a, b: TQuarter): Integer;
+begin
+  Result := a.FQuarter - b.FQuarter;
+end;
+
+class function TQuarter.Range(const First, Last: TQuarter): TSequence;
+begin
+  Result := TSequence.Create(First, Last);
+end;
+
+{ TQuarterHelper }
+
+function TQuarterHelper.Dates(const Year: TYear): TDate.TSequence;
+begin
+  Result := TDate.TSequence.Create(Year.First, Year.Last);
+end;
+
+function TQuarterHelper.First: TMonth;
+begin
+  Result.FMonth := QuarterFirstMonth[FQuarter];
+end;
+
+function TQuarterHelper.Last: TMonth;
+begin
+  Result.FMonth := QuarterLastMonth[FQuarter];
+end;
+
+function TQuarterHelper.Months: TMonth.TSequence;
+begin
+  Result := TMonth.TSequence.Create(First, Last);
+end;
+
+{ TQuarterSequenceHelper }
+
+function TQuarterSequenceHelper.First: TQuarter;
+begin
+  Result.FQuarter := FFirst;
+end;
+
+function TQuarterSequenceHelper.Last: TQuarter;
+begin
+  Result.FQuarter := FLast;
+end;
+
+function TQuarterSequenceHelper.Months: TMonth.TSequence;
+begin
+  Result := TMonth.TSequence.Create(First.First, Last.Last);
+end;
+
+{ TQuarterOfYear }
+
+constructor TQuarterOfYear.Create(const Year: TYear; const Quarter: TQuarter);
+begin
+  FYear := Year;
+  FQuarter := Quarter;
+end;
+
+constructor TQuarterOfYear.Create(const Date: System.TDateTime);
+begin
+  Self := TQuarterOfYear(Date);
+end;
+
+class function TQuarterOfYear.Current: TQuarterOfYear;
+begin
+  Result := TDate.Today.QuarterOfYear;
+end;
+
+class operator TQuarterOfYear.Explicit(const a: System.TDateTime): TQuarterOfYear;
+begin
+  Result := TDate(a).QuarterOfYear;
+end;
+
+class operator TQuarterOfYear.Equal(const a, b: TQuarterOfYear): Boolean;
+begin
+  Result := (a.FYear = b.FYear) and (a.FQuarter = b.FQuarter);
+end;
+
+class operator TQuarterOfYear.NotEqual(const a, b: TQuarterOfYear): Boolean;
+begin
+  Result := (a.FYear <> b.FYear) or (a.FQuarter <> b.FQuarter);
+end;
+
+class operator TQuarterOfYear.GreaterThan(const a, b: TQuarterOfYear): Boolean;
+begin
+  Result := a.Index > b.Index;
+end;
+
+class operator TQuarterOfYear.GreaterThanOrEqual(const a, b: TQuarterOfYear): Boolean;
+begin
+  Result := a.Index >= b.Index;
+end;
+
+class operator TQuarterOfYear.LessThan(const a, b: TQuarterOfYear): Boolean;
+begin
+  Result := a.Index < b.Index;
+end;
+
+class operator TQuarterOfYear.LessThanOrEqual(const a, b: TQuarterOfYear): Boolean;
+begin
+  Result := a.Index <= b.Index;
+end;
+
+class operator TQuarterOfYear.Add(const a: TQuarterOfYear; b: Word): TQuarterOfYear;
+begin
+  Result.Index := a.Index + b;
+end;
+
+class operator TQuarterOfYear.Subtract(const a, b: TQuarterOfYear): Integer;
+begin
+  Result := a.Index - b.Index;
+end;
+
+class operator TQuarterOfYear.Subtract(const a: TQuarterOfYear; const b: Word): TQuarterOfYear;
+begin
+  Result.Index := a.Index - b;
+end;
+
+class operator TQuarterOfYear.Inc(const a: TQuarterOfYear): TQuarterOfYear;
+begin
+  Result.Index := a.Index + 1;
+end;
+
+class operator TQuarterOfYear.Dec(const a: TQuarterOfYear): TQuarterOfYear;
+begin
+  Result.Index := a.Index - 1;
+end;
+
+function TQuarterOfYear.GetIndex: Integer;
+begin
+  Result := FYear.FYear * 3 + FQuarter.FQuarter - 1;
+end;
+
+procedure TQuarterOfYear.SetIndex(const Value: Integer);
+begin
+  FYear.FYear := Value div 3;
+  FQuarter.FQuarter := (Value mod 3) + 1;
+end;
+
+procedure TQuarterOfYear.SetQuarter(const Value: TQuarter);
+begin
+  FQuarter := Value;
+end;
+
+procedure TQuarterOfYear.SetYear(const Value: TYear);
+begin
+  FYear := Value;
+end;
+
+{ TQuarterOfYearHelper }
+
+function TQuarterOfYearHelper.First: TMonthOfYear;
+begin
+  Result := TMonthOfYear.Create(Year, QuarterFirstMonth[FQuarter.FQuarter]);
+end;
+
+function TQuarterOfYearHelper.Last: TMonthOfYear;
+begin
+  Result := TMonthOfYear.Create(Year, QuarterLastMonth[FQuarter.FQuarter]);
+end;
+
+function TQuarterOfYearHelper.Dates: TDate.TSequence;
+begin
+  Result := TDate.TSequence.Create(First.First, Last.Last);
+end;
+
+function TQuarterOfYearHelper.Months: TMonthOfYear.TSequence;
+begin
+  Result := TMonthOfYear.TSequence.Create(First, Last);
+end;
+
+{ TMonth.TSequenceEnumerator }
+
+constructor TMonth.TSequenceEnumerator.Create(const First, Last: TMonthNum);
+begin
+  FCurrent := First - 1;
+  FLast := Last;
+end;
+
+function TMonth.TSequenceEnumerator.GetCurrent: TMonth;
+begin
+  Result.FMonth := FCurrent;
+end;
+
+function TMonth.TSequenceEnumerator.MoveNext: Boolean;
+begin
+  Inc(FCurrent);
+  Result := FCurrent <= FLast;
+end;
+
+{ TMonth.TSequence }
+
+constructor TMonth.TSequence.Create(const First, Last: TMonth);
+begin
+  FFirst := First;
+  FLast := Last;
+  FCount := FLast - FFirst + 1;
+end;
+
+function TMonth.TSequence.GetEnumerator: TSequenceEnumerator;
+begin
+  Result := TMonth.TSequenceEnumerator.Create(FFirst, FLast);
 end;
 
 { TMonth }
@@ -1624,7 +2506,7 @@ begin
   Result := FormatSettings.LongMonthNames[FMonth];
 end;
 
-function TMonth.Count(const Year: TYear): Word;
+function TMonth.Days(const Year: TYear): TDays;
 begin
   Result := MonthDays[Year.IsLeap, FMonth];
 end;
@@ -1847,6 +2729,27 @@ begin
     Result := a.Time >= b.Time;
 end;
 
+class operator TDateTime.Implicit(const a: TTimeStamp): TDateTime;
+begin
+  Result.FDate := a.Date;
+  Result.FTime := a.Time;
+end;
+
+class operator TDateTime.Implicit(const a: TDateTime): TTimeStamp;
+begin
+  Result := DateTimeToTimeStamp(a);
+end;
+
+class operator TDateTime.Implicit(const a: Variant): TDateTime;
+begin
+  Result := DateTimeToTimeStamp(a);
+end;
+
+class operator TDateTime.Implicit(const a: TDateTime): Variant;
+begin
+  Result := TimeStampToDateTime(TTimeStamp(a));
+end;
+
 class function TDateTime.Now: TDateTime;
 {$IFDEF MSWINDOWS}
 var
@@ -1961,6 +2864,41 @@ begin
   Result := TDate.TSequenceEnumerator.Create(FFirst, FLast);
 end;
 
+{ TMonthOfYear.TSequenceEnumerator }
+
+constructor TMonthOfYear.TSequenceEnumerator.Create(const FirstMonth: TMonth; const FirstYear: TYear; const LastMonth: TMonth; const LastYear: TYear);
+begin
+  FCurrent := FirstYear.FYear * 12 + FirstMonth.FMonth - 1;
+  FLast := LastYear.FYear * 12 + LastMonth.FMonth - 1;
+end;
+
+function TMonthOfYear.TSequenceEnumerator.GetCurrent: TMonthOfYear;
+begin
+  Result.Index := FCurrent;
+end;
+
+function TMonthOfYear.TSequenceEnumerator.MoveNext: Boolean;
+begin
+  Inc(FCurrent);
+  Result := FCurrent <= FLast;
+end;
+
+{ TMonthOfYear.TSequence }
+
+constructor TMonthOfYear.TSequence.Create(const First, Last: TMonthOfYear);
+begin
+  FFirstYear := First.Year;
+  FFirstMonth := First.Month;
+  FLastYear := Last.Year;
+  FLastMonth := Last.Month;
+  FCount := Last.Index - First.Index + 1;
+end;
+
+function TMonthOfYear.TSequence.GetEnumerator: TSequenceEnumerator;
+begin
+  Result := TMonthOfYear.TSequenceEnumerator.Create(FFirstMonth, FFirstYear, FLastMonth, FLastYear);
+end;
+
 { TMonthOfYear }
 
 constructor TMonthOfYear.Create(const Year: TYear; const Month: TMonth);
@@ -1977,6 +2915,11 @@ end;
 class function TMonthOfYear.Current: TMonthOfYear;
 begin
   Result := TDate.Today.MonthOfYear;
+end;
+
+class operator TMonthOfYear.Implicit(const a: TMonthOfYear): TMonth;
+begin
+  Result := a.FMonth;
 end;
 
 class operator TMonthOfYear.Explicit(const a: System.TDateTime): TMonthOfYear;
@@ -2039,9 +2982,9 @@ begin
   Result.Index := a.Index - 1;
 end;
 
-function TMonthOfYear.GetCount: Word;
+function TMonthOfYear.GetDays: TDays;
 begin
-  Result := Month.Count(Year);
+  Result := Month.Days(Year);
 end;
 
 function TMonthOfYear.GetIndex: Integer;
@@ -2074,10 +3017,10 @@ end;
 
 function TMonthOfYearHelper.Last: TDate;
 begin
-  Result := Month.Last(Year);
+  Result.Encode(Word(Year), Word(Month), MonthDayCount[Year.IsLeap, Word(Month)]);
 end;
 
-function TMonthOfYearHelper.Sequence: TDate.TSequence;
+function TMonthOfYearHelper.Dates: TDate.TSequence;
 begin
   Result := TDate.TSequence.Create(First, Last);
 end;

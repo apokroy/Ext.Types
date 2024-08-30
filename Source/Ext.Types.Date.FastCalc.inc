@@ -19,6 +19,11 @@ const
     (7, 1, 2, 3, 4, 5, 6)
   );
 
+  MonthDayCount: array[Boolean, 1..12] of Word = (
+    (31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31),
+    (31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
+  );
+
   MonthOfDay: array[Boolean, 1..366] of Word = (
     (
       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -86,4 +91,16 @@ const
   MonthOffset: array[Boolean, 1..12] of Word = (
     (0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334),
     (0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335)
+  );
+
+  MonthQuarter: array[1..12] of Word = (
+    1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4
+  );
+
+  QuarterFirstMonth: array[1..4] of Word = (
+    1, 4, 7, 10
+  );
+
+  QuarterLastMonth: array[1..4] of Word = (
+    3, 6, 9, 12
   );
