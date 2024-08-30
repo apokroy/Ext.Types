@@ -8,11 +8,11 @@ Also provides helpers and utilites related to date and time calculations.
 Iterates thorough days, from first day of month's first week, to last day of month's last week
 * `TDate.Today - current date`
 * `TDate.Today.Month` - month of the day
-* `TDate.Today.Month.First` - first day of month
-* `TDate.Today.Monht.First.StartOfWeek` - first day of the month's first week
-* `TDate.Today.Month.First.StartOfWeek(Monday)` - first day of the month's first week, when week starts from Monday
+* `TDate.Today.MonthOfYear.First` - first day of month
+* `TDate.Today.MonthOfYear.First.StartOfWeek` - first day of the month's first week
+* `TDate.Today.MonthOfYear.First.StartOfWeek(Monday)` - first day of the month's first week, when week starts from Monday
 ```pascal
-for var D: TDate in TDate.Sequence(TDate.Today.Month.First.StartOfWeek(Monday), TDate.Today.Month.Last.EndOfWeek(Monday)) do
+for var D in TDate.Sequence(TDate.Today.MonthOfYear.First.StartOfWeek(Monday), TDate.Today.MonthOfYear.Last.EndOfWeek(Monday)) do
 begin
   Writeln(D.Format('YYYY-MM-DD') + string(D.Weekday));
 end;
@@ -25,4 +25,4 @@ Generic List\<T>, wrapping system TArray\<T> type. Supports modern set of functi
 ### Ext.Types.SmartPtr
 Smart pointers
 
-Uses ovverloading Assigment operator overloading, record Initialization and Finalization introduced in Delphi 10.4.
+
