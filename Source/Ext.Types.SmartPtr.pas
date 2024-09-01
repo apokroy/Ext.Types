@@ -86,13 +86,14 @@ end;
 
 class procedure Shared.Initialize<T>(var Value: T; const Initializer: AutoRef<T>);
 begin
-  System.TMonitor.Enter(FLock);
-  try
-    if not Assigned(Value) then
-      Value := Initializer();
-  finally
-    System.TMonitor.Exit(FLock);
-  end;
+  if not Assigned(Value) then
+    System.TMonitor.Enter(FLock);
+    try
+      if not Assigned(Value) then
+        Value := Initializer();
+    finally
+      System.TMonitor.Exit(FLock);
+    end;
 end;
 
 { Ref<T>.TAutoRef }
