@@ -48,6 +48,22 @@ type
     ///</summary>
     function  ToString(const FormatSettings: TFormatSettings): string; overload; inline;
     ///<summary>
+    ///  Name of the day as in LongDayNames of system global FormatSettings
+    ///</summary>
+    function  LongName: string; overload; inline;
+    ///<summary>
+    ///  Name of the day as in LongDayNames of FormatSettings parameter
+    ///</summary>
+    function  LongName(const FormatSettings: TFormatSettings): string; overload; inline;
+    ///<summary>
+    ///  Name of the day as in ShortDayNames of system global FormatSettings
+    ///</summary>
+    function  ShortName: string; overload; inline;
+    ///<summary>
+    ///  Name of the day as in ShortDayNames of FormatSettings parameter
+    ///</summary>
+    function  ShortName(const FormatSettings: TFormatSettings): string; overload; inline;
+    ///<summary>
     ///  Try parse Value using system global FormatSettings properties LongDayNames and ShortDayNames.
     ///  Case insensitive
     ///</summary>
@@ -144,6 +160,8 @@ type
   private
     FDay: Word;
   public
+    function ToString: string;
+  public
     class operator Implicit(const a: Word): TDay; inline;
     class operator Implicit(const a: TDay): Word; inline;
     class operator Explicit(const a: string): TDay; inline;
@@ -182,6 +200,7 @@ type
     ///  Return true if is leap year
     ///</summary>
     function  IsLeap: Boolean; inline;
+    function  ToString: string;
   public
     class operator Implicit(const a: Word): TYear; inline;
     class operator Implicit(const a: TYear): Word; inline;
@@ -642,6 +661,7 @@ type
     property  Time: TTime read FTime write SetTime;
   public
     constructor Create(const Value: TDateTime); overload;
+    constructor Create(const Date: TDate; const Time: TTime); overload;
     constructor Create(const Value: TDate); overload;
     constructor Create(const Value: TTime); overload;
     constructor Create(const Value: System.TDateTime); overload;
@@ -756,6 +776,34 @@ type
   end;
 {$endregion}
 
+  ICalendarProvider = interface
+    ['{12C1FBB9-A4DC-439B-B39F-5ACB6B3210F6}']
+    function IsWorkDay(const Date: TDate): Boolean;
+    function IsWeekEnd(const Date: TDate): Boolean;
+    function IsHoliday(const Date: TDate): Boolean;
+  end;
+
+  TBasicCalendar = class(TInterfacedObject, ICalendarProvider)
+  private
+    FHolidays: TDictionary<Integer, Boolean>;
+    FWorkDays: TDictionary<Integer, Boolean>;
+    function  GetHoliday(const Date: TDate): Boolean;
+    procedure SetHoliday(const Date: TDate; const Value: Boolean);
+    function  GetWorkDay(const Date: TDate): Boolean;
+    procedure SetWorkDay(const Date: TDate; const Value: Boolean);
+  protected
+    property  Holidays: TDictionary<Integer, Boolean> read FHolidays;
+    property  WorkDays: TDictionary<Integer, Boolean> read FWorkDays;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    function  IsWorkDay(const Date: TDate): Boolean; virtual;
+    function  IsWeekEnd(const Date: TDate): Boolean; virtual;
+    function  IsHoliday(const Date: TDate): Boolean; virtual;
+    property  Holiday[const Date: TDate]: Boolean read GetHoliday write SetHoliday;
+    property  WorkDay[const Date: TDate]: Boolean read GetWorkDay write SetWorkDay;
+  end;
+
   /// Predefined constants for fast calculations
   {$include Ext.Types.Date.FastCalc.inc}
   {$include Ext.Types.Date.Leap.inc}
@@ -801,6 +849,8 @@ function Date: TDate; inline;
 function Time: TTime; inline;
 function Now: TDateTime; inline;
 
+function DefaultCalendar: ICalendarProvider;
+
 const
   FMSecsPerDay: Single  = MSecsPerDay;
   IMSecsPerDay: Integer = MSecsPerDay;
@@ -813,6 +863,22 @@ implementation
 
 uses
   System.SysConst, System.Math;
+
+var
+  gDefaultCalendar: ICalendarProvider;
+
+function DefaultCalendar: ICalendarProvider;
+begin
+  Result := gDefaultCalendar;
+end;
+
+procedure SetDefaultCalendar(const Value: ICalendarProvider);
+begin
+  if Value = nil then
+    gDefaultCalendar := TBasicCalendar.Create
+  else
+    gDefaultCalendar := Value;
+end;
 
 function Today: TDate;
 begin
@@ -1080,7 +1146,7 @@ end;
 
 class operator TDate.NotEqual(const a, b: TDate): Boolean;
 begin
-  Result := a.FDate <> a.FDate;
+  Result := a.FDate <> b.FDate;
 end;
 
 class operator TDate.GreaterThan(const a, b: TDate): Boolean;
@@ -1861,6 +1927,26 @@ begin
   Result := FormatSettings.LongDayNames[FDay];
 end;
 
+function TWeekday.ShortName(const FormatSettings: TFormatSettings): string;
+begin
+  Result := FormatSettings.ShortDayNames[FDay];
+end;
+
+function TWeekday.ShortName: string;
+begin
+  Result := FormatSettings.ShortDayNames[FDay];
+end;
+
+function TWeekday.LongName(const FormatSettings: TFormatSettings): string;
+begin
+  Result := FormatSettings.LongDayNames[FDay];
+end;
+
+function TWeekday.LongName: string;
+begin
+  Result := FormatSettings.LongDayNames[FDay];
+end;
+
 procedure TWeekday.Parse(const Value: string; const FormatSettings: TFormatSettings);
 begin
   if not TryParse(Value, FormatSettings) then
@@ -2057,6 +2143,11 @@ end;
 class operator TYear.Subtract(const a, b: TYear): Integer;
 begin
   Result := a.FYear - b.FYear;
+end;
+
+function TYear.ToString: string;
+begin
+  Result := FYear.ToString;
 end;
 
 { TYearHelper }
@@ -2596,6 +2687,11 @@ begin
   Result.FDay := a.FDay - b;
 end;
 
+function TDay.ToString: string;
+begin
+  Result := FDay.ToString;
+end;
+
 class operator TDay.IntDivide(const a: TDay; const b: Word): TDay;
 begin
   Result.FDay := a.FDay div b;
@@ -2634,6 +2730,12 @@ constructor TDateTime.Create(const Value: TTime);
 begin
   FDate := TDate.Today;
   FTime := Value;
+end;
+
+constructor TDateTime.Create(const Date: TDate; const Time: TTime);
+begin
+  FDate := Date;
+  FTime := Time;
 end;
 
 constructor TDateTime.Create(const Value: System.TDateTime);
@@ -3037,6 +3139,60 @@ begin
   Result.FDate := FLast;
 end;
 
+{ TBasicCalendar }
+
+constructor TBasicCalendar.Create;
+begin
+  inherited;
+  FHolidays := TDictionary<Integer, Boolean>.Create;
+  FWorkDays := TDictionary<Integer, Boolean>.Create;
+end;
+
+destructor TBasicCalendar.Destroy;
+begin
+  FreeAndNil(FHolidays);
+  FreeAndNil(FWorkDays);
+  inherited;
+end;
+
+function TBasicCalendar.GetHoliday(const Date: TDate): Boolean;
+begin
+  if not Holidays.TryGetValue(Date.FDate, Result) then
+    Result := False;
+end;
+
+function TBasicCalendar.IsHoliday(const Date: TDate): Boolean;
+begin
+  Result := GetHoliday(Date);
+end;
+
+procedure TBasicCalendar.SetHoliday(const Date: TDate; const Value: Boolean);
+begin
+  Holidays.AddOrSetValue(Date.FDate, Value);
+end;
+
+function TBasicCalendar.GetWorkDay(const Date: TDate): Boolean;
+begin
+  if not WorkDays.TryGetValue(Date.FDate, Result) then
+    Result := False;
+end;
+
+function TBasicCalendar.IsWorkDay(const Date: TDate): Boolean;
+begin
+  if not WorkDays.TryGetValue(Date.FDate, Result) then
+    Result := not IsWeekEnd(Date) and not IsHoliday(Date);
+end;
+
+procedure TBasicCalendar.SetWorkDay(const Date: TDate; const Value: Boolean);
+begin
+  WorkDays.AddOrSetValue(Date.FDate, Value);
+end;
+
+function TBasicCalendar.IsWeekEnd(const Date: TDate): Boolean;
+begin
+  Result := Date.Weekday in [1, 7];
+end;
+
 {$IFDEF MSWINDOWS}
 procedure Init;
 const
@@ -3057,5 +3213,6 @@ end;
 
 initialization
   Init;
+  gDefaultCalendar := TBasicCalendar.Create;
 
 end.
