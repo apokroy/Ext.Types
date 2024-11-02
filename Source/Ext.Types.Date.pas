@@ -3,13 +3,14 @@ unit Ext.Types.Date;
 interface
 
 uses
-  System.Types, {$IFDEF MSWINDOWS}Winapi.Windows, {$ENDIF}System.SysUtils,
-  System.Variants, System.Generics.Collections;
+  System.Types, {$IFDEF MSWINDOWS}Winapi.Windows, {$ENDIF}System.SysUtils, System.Variants, System.Generics.Defaults, System.Generics.Collections;
 
 type
   TMonthNum   = 1..12;
   TWeekdayNum = 1..7;
   TQuarterNum = 1..4;
+  TMonthDay   = 1..31;
+  TDayOfYear  = 1..366;
 
   TYears   = type Integer;
   TMonths  = type Integer;
@@ -17,6 +18,23 @@ type
   THours   = type Integer;
   TMinutes = type Integer;
   TSeconds = type Integer;
+
+  TDatePart = (
+    Year,
+    Quarter,
+    Month,
+    Week,
+    Day
+  );
+
+  TTimePart = (
+    Second,
+    Hour,
+    Minute,
+    Millisecond,
+    Microsecond,
+    Nanosecond
+  );
 
   TDateParts = record
     Y: Word;
@@ -88,11 +106,14 @@ type
     ///</summary>
     property  Day: TWeekdayNum read GetDay write SetDay;
   public
+    function GetHashCode: Integer;
     class operator Add(const a: TWeekday; b: Word): TWeekday; inline;
     class operator Subtract(const a, b: TWeekday): Integer; inline;
     class operator Subtract(const a: TWeekday; const b: Word): TWeekday; inline;
     class operator Implicit(const a: Word): TWeekday; inline;
     class operator Implicit(const a: TWeekday): Word; inline;
+    class operator Implicit(const a: TWeekdayNum): TWeekday; inline;
+    class operator Implicit(const a: TWeekday): TWeekdayNum; inline;
     class operator Explicit(const a: TWeekday): string; inline;
     class operator Explicit(const a: string): TWeekday; inline;
     class operator Equal(const a, b: TWeekday) : Boolean; inline;
@@ -161,6 +182,7 @@ type
     FDay: Word;
   public
     function ToString: string;
+    function GetHashCode: Integer;
   public
     class operator Implicit(const a: Word): TDay; inline;
     class operator Implicit(const a: TDay): Word; inline;
@@ -201,6 +223,7 @@ type
     ///</summary>
     function  IsLeap: Boolean; inline;
     function  ToString: string;
+    function  GetHashCode: Integer;
   public
     class operator Implicit(const a: Word): TYear; inline;
     class operator Implicit(const a: TYear): Word; inline;
@@ -252,9 +275,9 @@ type
       property  Count: Integer read FCount;
     end;
   public const
-    Roman: array[1..4] of string = ('I', 'II', 'III', 'IV');
-    Arabic: array[1..4] of string = ('1', '2', '3', '4');
-    Unicode: array[1..4] of string = (#2160, #2161, #2162, #2163);
+    Roman: array[TQuarterNum] of string = ('I', 'II', 'III', 'IV');
+    Arabic: array[TQuarterNum] of string = ('1', '2', '3', '4');
+    Unicode: array[TQuarterNum] of string = (#2160, #2161, #2162, #2163);
   public
     class function Range(const First, Last: TQuarter): TSequence; static; inline;
   public
@@ -362,6 +385,8 @@ type
     ///  Name of the month as in LongMonthNames of FormatSettings parameter
     ///</summary>
     function  ToString(const FormatSettings: TFormatSettings): string; overload; inline;
+    function  ToString(Short: Boolean): string; overload; inline;
+    function  ToString(Short: Boolean; const FormatSettings: TFormatSettings): string; overload; inline;
     ///<summary>
     ///  Returns count of days in month of a Year
     ///</summary>
@@ -372,6 +397,7 @@ type
     class operator Subtract(const a: TMonth; const b: Word): TMonth; inline;
     class operator Implicit(const a: Word): TMonth; inline;
     class operator Implicit(const a: TMonth): Word; inline;
+    class operator Implicit(const a: TMonth): TMonthNum; inline;
     class operator Explicit(const a: string): TMonth; inline;
     class operator Explicit(const a: TMonth): string; inline;
     class operator Equal(const a, b: TMonth) : Boolean; inline;
@@ -439,11 +465,14 @@ type
     constructor Create(const Date: System.TDateTime); overload;
     constructor Create(const Year: TYear; const Month: TMonth); overload;
     class function Current: TMonthOfYear; static; inline;
+    function  ToString: string;
+    function  GetHashCode: Integer;
     property  Year: TYear read FYear write SetYear;
     property  Month: TMonth read FMonth write SetMonth;
     property  Days: TDays read GetDays;
   public
     class operator Implicit(const a: TMonthOfYear): TMonth; inline;
+    class operator Implicit(const a: TMonthOfYear): TMonthNum; inline;
     class operator Explicit(const a: System.TDateTime): TMonthOfYear; inline;
     class operator Add(const a: TMonthOfYear; b: Word): TMonthOfYear; inline;
     class operator Subtract(const a, b: TMonthOfYear): Integer; inline;
@@ -456,6 +485,27 @@ type
     class operator GreaterThanOrEqual(const a, b: TMonthOfYear) : Boolean; inline;
     class operator LessThan(const a, b: TMonthOfYear) : Boolean; inline;
     class operator LessThanOrEqual(const a, b: TMonthOfYear) : Boolean; inline;
+  end;
+
+  TDayOfMonth = record
+  private
+    FMonth: TMonth;
+    FDay: TDay;
+    procedure SetDay(const Value: TDay);
+    procedure SetMonth(const Value: TMonth);
+  public
+    function ToString: string;
+    function GetHashCode: Integer;
+  public
+    class operator Equal(const a, b: TDayOfMonth) : Boolean; inline;
+    class operator NotEqual(const a, b: TDayOfMonth) : Boolean; inline;
+    class operator GreaterThan(const a, b: TDayOfMonth) : Boolean; inline;
+    class operator GreaterThanOrEqual(const a, b: TDayOfMonth) : Boolean; inline;
+    class operator LessThan(const a, b: TDayOfMonth) : Boolean; inline;
+    class operator LessThanOrEqual(const a, b: TDayOfMonth) : Boolean; inline;
+  public
+    property  Month: TMonth read FMonth write SetMonth;
+    property  Day: TDay read FDay write SetDay;
   end;
 
 {$endregion}
@@ -502,6 +552,9 @@ type
     procedure SetYear(const Value: TYear); inline;
     function  GetMonthOfYear: TMonthOfYear; inline;
     procedure SetMonthOfYear(const Value: TMonthOfYear); inline;
+    function  GetDayOfYear: TDayOfYear;
+    procedure SetDayOfYear(const Value: TDayOfYear);
+    function  GetDayOfMonth: TDayOfMonth;
   public
     function  ToString: string; overload; inline;
     function  ToString(const FormatSettings: TFormatSettings): string; overload; inline;
@@ -524,6 +577,8 @@ type
     procedure Decode(var Year: Word); overload; inline;
     procedure Decode(var Year: TYear; var Month: TMonth; var Day: TDay); overload; inline;
     property  Day: TDay read GetDay write SetDay;
+    property  DayOfMonth: TDayOfMonth read GetDayOfMonth;
+    property  DayOfYear: TDayOfYear read GetDayOfYear write SetDayOfYear;
     property  Month: TMonth read GetMonth write SetMonth;
     property  Quarter: TQuarter read GetQuarter;
     property  Year: TYear read GetYear write SetYear;
@@ -605,6 +660,7 @@ type
   public
     constructor Create(const Time: TTime); overload;
     constructor Create(const Time: System.TDateTime); overload;
+    constructor Create(Hour, Min, Sec: Word; MSec: Word = 0); overload;
     class function Now: TTime; static; inline;
   public
     class operator Add(const L: TTime; R: Integer): TTime; inline;
@@ -1332,6 +1388,22 @@ begin
   Result.FDay := D;
 end;
 
+function TDate.GetDayOfYear: TDayOfYear;
+begin
+  Result := FDate - Year.First.FDate + 1;
+end;
+
+procedure TDate.SetDayOfYear(const Value: TDayOfYear);
+begin
+  FDate := Year.First.FDate + Value - 1;
+end;
+
+function TDate.GetDayOfMonth: TDayOfMonth;
+begin
+  Result.FMonth := Month;
+  Result.FDay := Day;
+end;
+
 procedure TDate.SetDay(const Value: TDay);
 var
   Y, M, D: Word;
@@ -1517,6 +1589,11 @@ end;
 constructor TTime.Create(const Time: System.TDateTime);
 begin
   Self := Time;
+end;
+
+constructor TTime.Create(Hour, Min, Sec, MSec: Word);
+begin
+  Encode(Hour, Min, Sec, MSec);
 end;
 
 class function TTime.Now: TTime;
@@ -1852,6 +1929,11 @@ end;
 
 { TWeekday }
 
+function TWeekday.GetHashCode: Integer;
+begin
+  Result := FDay;
+end;
+
 class operator TWeekday.Implicit(const a: Word): TWeekday;
 begin
   Result.FDay := a;
@@ -2004,6 +2086,16 @@ begin
   FDay := WeekdaysArray[Word(FirstDayOfWeek), Value];
 end;
 
+class operator TWeekday.Implicit(const a: TWeekday): TWeekdayNum;
+begin
+  Result := a.FDay;
+end;
+
+class operator TWeekday.Implicit(const a: TWeekdayNum): TWeekday;
+begin
+  Result.FDay := a;
+end;
+
 { TWeek.TEnumerator }
 
 function TWeek.TEnumerator.GetCurrent: TWeekday;
@@ -2048,6 +2140,11 @@ begin
 end;
 
 { TYear }
+
+function TYear.GetHashCode: Integer;
+begin
+  Result := FYear;
+end;
 
 class function TYear.Current: TYear;
 begin
@@ -2577,6 +2674,11 @@ begin
   Result := a.FMonth <> b.FMonth;
 end;
 
+class operator TMonth.Implicit(const a: TMonth): TMonthNum;
+begin
+  Result := a.FMonth;
+end;
+
 class operator TMonth.Implicit(const a: TMonth): Word;
 begin
   Result := a.FMonth;
@@ -2595,6 +2697,22 @@ end;
 function TMonth.ToString(const FormatSettings: TFormatSettings): string;
 begin
   Result := FormatSettings.LongMonthNames[FMonth];
+end;
+
+function TMonth.ToString(Short: Boolean): string;
+begin
+  if Short then
+    Result := FormatSettings.ShortMonthNames[FMonth]
+  else
+    Result := FormatSettings.LongMonthNames[FMonth];
+end;
+
+function TMonth.ToString(Short: Boolean; const FormatSettings: TFormatSettings): string;
+begin
+  if Short then
+    Result := FormatSettings.ShortMonthNames[FMonth]
+  else
+    Result := FormatSettings.LongMonthNames[FMonth];
 end;
 
 function TMonth.Days(const Year: TYear): TDays;
@@ -2626,6 +2744,11 @@ begin
 end;
 
 { TDay }
+
+function TDay.GetHashCode: Integer;
+begin
+  Result := FDay;
+end;
 
 class operator TDay.Explicit(const a: TDay): string;
 begin
@@ -3024,6 +3147,11 @@ begin
   Result := a.FMonth;
 end;
 
+class operator TMonthOfYear.Implicit(const a: TMonthOfYear): TMonthNum;
+begin
+  Result := a.Month;
+end;
+
 class operator TMonthOfYear.Explicit(const a: System.TDateTime): TMonthOfYear;
 begin
   Result := TDate(a).MonthOfYear;
@@ -3089,6 +3217,16 @@ begin
   Result := Month.Days(Year);
 end;
 
+function TMonthOfYear.ToString: string;
+begin
+  Result := Month.ToString + ' ' + Year.ToString;
+end;
+
+function TMonthOfYear.GetHashCode: Integer;
+begin
+  Result := Year.FYear shl 8 + Month.FMonth;
+end;
+
 function TMonthOfYear.GetIndex: Integer;
 begin
   Result := FYear.FYear * 12 + FMonth.FMonth - 1;
@@ -3137,6 +3275,58 @@ end;
 function TDateSequenceHelper.GetLast: TDate;
 begin
   Result.FDate := FLast;
+end;
+
+{ TDayOfMonth }
+
+function TDayOfMonth.GetHashCode: Integer;
+begin
+  Result := Integer(Self);
+end;
+
+function TDayOfMonth.ToString: string;
+begin
+  Result := Day.ToString + ' ' + Month.ToString;
+end;
+
+class operator TDayOfMonth.Equal(const a, b: TDayOfMonth): Boolean;
+begin
+  Result := (a.Month = b.Month) and (a.Day = b.Day);
+end;
+
+class operator TDayOfMonth.GreaterThan(const a, b: TDayOfMonth): Boolean;
+begin
+  Result := Cardinal(a) > Cardinal(b);
+end;
+
+class operator TDayOfMonth.GreaterThanOrEqual(const a, b: TDayOfMonth): Boolean;
+begin
+  Result := Cardinal(a) >= Cardinal(b);
+end;
+
+class operator TDayOfMonth.LessThan(const a, b: TDayOfMonth): Boolean;
+begin
+  Result := Cardinal(a) < Cardinal(b);
+end;
+
+class operator TDayOfMonth.LessThanOrEqual(const a, b: TDayOfMonth): Boolean;
+begin
+  Result := Cardinal(a) <= Cardinal(b);
+end;
+
+class operator TDayOfMonth.NotEqual(const a, b: TDayOfMonth): Boolean;
+begin
+  Result := Cardinal(a) <> Cardinal(b);
+end;
+
+procedure TDayOfMonth.SetDay(const Value: TDay);
+begin
+  FDay := Value;
+end;
+
+procedure TDayOfMonth.SetMonth(const Value: TMonth);
+begin
+  FMonth := Value;
 end;
 
 { TBasicCalendar }
